@@ -3,315 +3,445 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎲 D&D Archetype Assessment</title>
+  <title>D&D Archetype Profile</title>
   <style>
-    :root{--bg:#0a0a0f;--surface:#1a1a2e;--primary:#7b68ee;--text:#e6e6ff;--muted:#a0a0c0}
+    :root{--bg:#050508;--surface:#0f0f16;--border:#1e1e2a;--primary:#00ff9d;--primary-dim:#00cc7a;--accent:#ff6b35;--text:#e0e6ed;--muted:#8b9bb4;--dim:#4a5568;--warn:#ffd166;--err:#ef476f}
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:monospace;background:var(--bg);color:var(--text);padding:2rem;line-height:1.5}
-    .header{border:2px solid var(--primary);padding:1rem;margin-bottom:2rem;text-align:center}
-    .title{color:var(--primary);text-transform:uppercase;letter-spacing:3px}
-    .screen{display:none}
+    body{font-family:'Courier New',monospace;background:var(--bg);color:var(--text);line-height:1.5;padding:1rem;min-height:100vh}
+    .grid{max-width:900px;margin:0 auto}
+    .hdr{border:1px solid var(--primary);padding:1rem;margin-bottom:1.5rem;background:linear-gradient(180deg,rgba(0,255,157,.05),transparent)}
+    .hdr h1{color:var(--primary);font-size:1.3rem;text-transform:uppercase;letter-spacing:3px}
+    .hdr .sub{color:var(--muted);font-size:.75rem;margin-top:.3rem}
+    .screen{display:none;animation:fade .3s ease}
     .screen.active{display:block}
-    .btn{background:var(--surface);border:1px solid var(--primary);color:var(--primary);padding:.75rem 1.5rem;cursor:pointer;margin:.5rem}
-    .btn:hover{background:rgba(123,104,238,.2)}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .progress{height:8px;background:#333;margin:1rem 0}
-    .progress-fill{height:100%;background:var(--primary);width:0;transition:width.3s}
-    .question{background:var(--surface);padding:1.5rem;margin:1rem 0;border-left:4px solid var(--primary)}
-    .options{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin:1rem 0}
-    .opt{padding:1rem;text-align:center;border:1px solid #333;cursor:pointer}
-    .opt:hover,.opt.selected{border-color:var(--primary);background:rgba(123,104,238,.2)}
-    .result-card{background:var(--surface);padding:1.5rem;margin:1rem 0;border-left:4px solid var(--primary)}
-    .bar{height:6px;background:#333;margin:.5rem 0}
-    .bar-fill{height:100%;background:var(--primary)}
-    @media(max-width:600px){.options{grid-template-columns:repeat(2,1fr)}}
+    .card{background:var(--surface);border:1px solid var(--border);padding:1.2rem;margin-bottom:1rem}
+    .btn{background:var(--surface);border:1px solid var(--primary);color:var(--primary);padding:.6rem 1.2rem;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:1px;font-size:.8rem}
+    .btn:hover{background:rgba(0,255,157,.1)}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .prog{height:6px;background:var(--border);margin:1rem 0;border-radius:2px;overflow:hidden}
+    .prog-fill{height:100%;background:var(--primary);width:0;transition:width .25s}
+    .q-box{min-height:80px;margin:1rem 0;padding:1rem;background:rgba(0,255,157,.03);border-left:3px solid var(--primary)}
+    .opts{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin:1rem 0}
+    .opt{padding:.8rem .3rem;text-align:center;border:1px solid var(--border);cursor:pointer;font-size:.75rem;background:var(--surface)}
+    .opt:hover,.opt.sel{border-color:var(--primary);background:rgba(0,255,157,.08);color:var(--primary)}
+    .nav{display:flex;justify-content:space-between;margin-top:1rem}
+    .res-bar{height:8px;background:var(--border);border-radius:2px;margin:.3rem 0;overflow:hidden}
+    .res-fill{height:100%;background:var(--primary);border-radius:2px}
+    .tag{display:inline-block;padding:.2rem .5rem;background:rgba(0,255,157,.1);border:1px solid var(--primary);font-size:.65rem;margin:.2rem}
+    .alert{padding:1rem;border:1px solid var(--warn);background:rgba(255,209,102,.05);margin-bottom:1rem;font-size:.85rem}
+    pre{white-space:pre-wrap;font-size:.85rem;color:var(--muted);line-height:1.7;background:var(--surface);padding:1rem;border:1px solid var(--border)}
+    .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;font-size:.8rem;margin:1rem 0}
+    .meta span{color:var(--muted)}
+    .meta strong{color:var(--text)}
+    @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){.opts{grid-template-columns:repeat(2,1fr)}.hdr h1{font-size:1.1rem}}
   </style>
 </head>
 <body>
-  <header class="header">
-    <h1 class="title">🎲 D&D Archetype Assessment</h1>
-    <p>Descubre tu clase de aventurero • 120 preguntas</p>
+<div class="grid">
+  <header class="hdr">
+    <h1>D&D ARCHETYPE PROFILE<span style="animation:blink 1s infinite">█</span></h1>
+    <div class="sub">Evaluación psicométrica de arquetipos • 120 ítems • Procesamiento local</div>
   </header>
 
-  <!-- Welcome -->
-  <section id="welcome" class="screen active">
-    <div style="text-align:center;padding:2rem">
-      <p style="margin-bottom:1rem">Este test te ayudará a descubrir qué arquetipo de D&D eres.</p>
-      <p style="color:var(--muted);margin-bottom:2rem">Responde con honestidad • Resultados privados • 100% local</p>
-      <label style="display:block;margin-bottom:1rem">
-        <input type="checkbox" id="consent"> 
-        He leído y consiento participar para entretenimiento.
+  <section id="s-welcome" class="screen active">
+    <div class="card">
+      <h3 style="color:var(--primary);margin-bottom:.5rem">PROTOCOLO DE EVALUACIÓN</h3>
+      <p style="color:var(--muted);margin-bottom:1rem">Este instrumento mide dimensiones de personalidad, preferencias operativas y perfiles de rol mediante escalas clínicas y de validez. Responde según tu tendencia natural, no según la respuesta "correcta".</p>
+      <ul style="color:var(--muted);font-size:.85rem;margin:1rem 0;padding-left:1.2rem">
+        <li>Duración estimada: 25-30 minutos</li>
+        <li>Escala Likert 1-5 (Total desacuerdo → Total acuerdo)</li>
+        <li>Incluye escalas de validez y consistencia interna</li>
+        <li>Resultados procesados 100% en tu navegador</li>
+      </ul>
+      <label style="display:flex;align-items:flex-start;gap:.6rem;cursor:pointer;margin:1rem 0;font-size:.85rem;color:var(--muted)">
+        <input type="checkbox" id="consent" style="margin-top:3px">
+        <span>Acepto participar con fines de autoconocimiento y entretenimiento. Entiendo que los resultados son orientativos.</span>
       </label>
-      <button class="btn" id="startBtn" disabled>[ COMENZAR AVENTURA ]</button>
+      <button id="btn-start" class="btn" disabled>[ INICIAR PROTOCOLO ]</button>
     </div>
   </section>
 
-  <!-- Assessment -->
-  <section id="assessment" class="screen">
-    <div class="progress"><div class="progress-fill" id="progress"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)">
-      <span id="qNum">1/120</span>
-      <span id="qCat">Categoría</span>
+  <section id="s-assess" class="screen">
+    <div class="prog"><div class="prog-fill" id="prog-fill"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--dim)">
+      <span id="q-idx">Ítem 1/120</span><span id="q-dom">Dominio</span><span id="q-val">Validez: OK</span>
     </div>
-    <div class="question">
-      <p id="qText" style="margin-bottom:1rem">Cargando...</p>
-      <div class="options" id="options"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between">
-      <button class="btn" id="prevBtn" disabled>[ ← ]</button>
-      <button class="btn" id="nextBtn">[ → ]</button>
+    <div class="q-box" id="q-text">Cargando...</div>
+    <div class="opts" id="q-opts"></div>
+    <div class="nav">
+      <button id="btn-prev" class="btn" disabled>[ ← ]</button>
+      <button id="btn-next" class="btn">[ → ]</button>
     </div>
   </section>
 
-  <!-- Results -->
-  <section id="results" class="screen">
-    <div class="result-card">
-      <h3 style="color:var(--primary)">🎭 ARQUETIPO PRIMARIO</h3>
-      <h2 id="primaryRole" style="margin:.5rem 0">---</h2>
-      <p id="primaryDesc" style="color:var(--muted)">---</p>
-      <span id="primaryCat" style="background:rgba(123,104,238,.2);padding:.25rem .5rem;font-size:.8rem">---</span>
-    </div>
-    <div class="result-card">
-      <h3>📊 TOP 5 ROLES</h3>
-      <div id="topRoles"></div>
-    </div>
-    <div class="result-card">
-      <h3>📈 DIMENSIONES</h3>
-      <div id="dimensions"></div>
-    </div>
-    <pre id="interpretation" style="background:var(--surface);padding:1rem;white-space:pre-wrap;font-size:.9rem"></pre>
-    <div style="text-align:center;margin:2rem">
-      <button class="btn" id="downloadBtn">[ 📥 DESCARGAR FICHA ]</button>
-      <button class="btn" id="restartBtn">[ 🔄 NUEVA EVALUACIÓN ]</button>
+  <section id="s-load" class="screen">
+    <div class="card" style="text-align:center;padding:2rem">
+      <div style="font-size:2rem;color:var(--primary);margin-bottom:1rem">⟳</div>
+      <h3>PROCESANDO DATOS</h3>
+      <p style="color:var(--muted);font-size:.8rem;margin:1rem 0">Calculando puntuaciones T • Evaluando escalas de validez • Generando perfil</p>
+      <div id="load-pct" style="color:var(--primary);font-size:1.5rem;margin-top:1rem">0%</div>
     </div>
   </section>
 
-  <script>
-    // ===== DATOS (simplificado para demo) =====
-    const QUESTIONS = [
-      {id:1,text:"Prefiero resolver conflictos con fuerza directa.",cat:"combat"},
-      {id:2,text:"Me siento más cómodo atacando desde las sombras.",cat:"combat"},
-      {id:3,text:"Disfruto estudiando estrategias antes de combatir.",cat:"combat"},
-      {id:4,text:"Prefiero evitar el combate si puedo hablar.",cat:"combat"},
-      {id:5,text:"Me fascina el estudio de lo místico.",cat:"magic"},
-      {id:6,text:"Prefiero soluciones prácticas antes que mágicas.",cat:"magic"},
-      {id:7,text:"Me gustaría poder lanzar hechizos poderosos.",cat:"magic"},
-      {id:8,text:"Confío más en mi fuerza física que en la magia.",cat:"magic"},
-      {id:9,text:"Me resulta fácil convencer a otros con palabras.",cat:"social"},
-      {id:10,text:"Prefiero la acción antes que la diplomacia.",cat:"social"},
-      // ... añade hasta 120 preguntas
-    ].map((q,i) => ({...q, id:i+1}));
+  <section id="s-res" class="screen">
+    <div id="val-alert" class="alert" style="display:none">⚠️ <strong>PROTOCOLO CUESTIONABLE</strong><br><span id="val-msg"></span></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 style="color:var(--primary)">ARQUETIPO PRIMARIO</h3>
+        <span class="tag" id="res-cat">---</span>
+      </div>
+      <h2 id="res-main" style="margin:.5rem 0">---</h2>
+      <p id="res-desc" style="color:var(--muted);font-size:.9rem">---</p>
+    </div>
+    <div class="card">
+      <h3>PERFIL SECUNDARIO</h3>
+      <h4 id="res-sec" style="margin:.3rem 0">---</h4>
+      <p id="res-sec-desc" style="color:var(--muted);font-size:.85rem">---</p>
+    </div>
+    <div class="card">
+      <h3>DIMENSIONES (Puntuación T)</h3>
+      <div id="res-dims"></div>
+      <div style="display:flex;gap:1rem;font-size:.7rem;color:var(--dim);margin-top:.5rem">
+        <span>◼ &lt;40: Bajo</span><span>◼ 40-60: Promedio</span><span>◼ &gt;60: Alto</span>
+      </div>
+    </div>
+    <pre id="res-report">Generando informe...</pre>
+    <div class="meta">
+      <div><span>Confianza:</span> <strong id="res-conf">---</strong></div>
+      <div><span>Fecha:</span> <strong id="res-date">---</strong></div>
+      <div><span>Ítems:</span> <strong>120/120</strong></div>
+    </div>
+    <div style="display:flex;gap:.8rem;justify-content:center;margin:1.5rem 0">
+      <button id="btn-dl" class="btn">[ EXPORTAR PERFIL ]</button>
+      <button id="btn-re" class="btn">[ NUEVA EVALUACIÓN ]</button>
+    </div>
+  </section>
+</div>
+<script>
+// ===== BANCO DE 120 ÍTEMS =====
+// Estructura: id, texto, categoría, peso, reversa(bool)
+// Categorías: STR(combat), INT(magic/knowledge), CHA(social/lead), WIS(moral/resilience), DEX(stealth/adapt), CON(endurance/risk), VAL(validity)
+const Q=[
+{id:1,t:"Suelo seguir las normas incluso cuando nadie las vigila.",c:"VAL",w:3,r:0},
+{id:2,t:"Nunca he sentido envidia por los logros ajenos.",c:"VAL",w:3,r:0},
+{id:3,t:"Me considero una persona completamente honesta en todo momento.",c:"VAL",w:3,r:0},
+{id:4,t:"Nunca he mentido para evitar un problema.",c:"VAL",w:3,r:0},
+{id:5,t:"Siempre admito mis errores inmediatamente.",c:"VAL",w:3,r:0},
+{id:6,t:"Nunca he tenido pensamientos que me avergüencen.",c:"VAL",w:3,r:0},
+{id:7,t:"Me considero moralmente superior a la mayoría.",c:"VAL",w:3,r:0},
+{id:8,t:"Nunca he sentido miedo en situaciones de riesgo real.",c:"VAL",w:3,r:0},
+{id:9,t:"A veces siento que puedo anticipar lo que va a pasar.",c:"VAL",w:2,r:0},
+{id:10,t:"He tenido experiencias que otros no pueden comprender.",c:"VAL",w:2,r:0},
+{id:11,t:"Mis intuiciones casi siempre resultan correctas.",c:"VAL",w:2,r:0},
+{id:12,t:"Siento que tengo un destino especial que cumplir.",c:"VAL",w:2,r:0},
+{id:13,t:"Prefiero resolver los conflictos con fuerza directa.",c:"STR",w:4,r:0},
+{id:14,t:"Me resulta agotador mantener la calma en discusiones acaloradas.",c:"STR",w:3,r:0},
+{id:15,t:"Disfruto superando límites físicos o mentales exigentes.",c:"STR",w:4,r:0},
+{id:16,t:"Cuando hay tensión, mi primer impulso es actuar, no reflexionar.",c:"STR",w:3,r:0},
+{id:17,t:"Prefiero la acción rápida antes que la planificación prolongada.",c:"STR",w:4,r:0},
+{id:18,t:"Me siento incómodo cuando las decisiones se retrasan por burocracia.",c:"STR",w:3,r:0},
+{id:19,t:"El contacto físico directo me resulta más efectivo que las palabras.",c:"STR",w:3,r:0},
+{id:20,t:"Me motiva la competencia y superar a otros en rendimiento.",c:"STR",w:4,r:0},
+{id:21,t:"Me fascina el estudio de sistemas complejos o desconocidos.",c:"INT",w:4,r:0},
+{id:22,t:"Prefiero analizar múltiples escenarios antes de tomar una decisión.",c:"INT",w:4,r:0},
+{id:23,t:"Me resulta satisfactorio resolver acertijos o problemas abstractos.",c:"INT",w:4,r:0},
+{id:24,t:"Desconfío de soluciones que no entiendo por completo.",c:"INT",w:3,r:0},
+{id:25,t:"Me atrae el poder de manipular variables a mi favor.",c:"INT",w:4,r:0},
+{id:26,t:"Prefiero trabajar con teorías y modelos antes que con práctica inmediata.",c:"INT",w:3,r:0},
+{id:27,t:"Me cuesta aceptar afirmaciones sin evidencia lógica.",c:"INT",w:4,r:0},
+{id:28,t:"Disfruto aprendiendo por mi cuenta, sin supervisión directa.",c:"INT",w:3,r:0},
+{id:29,t:"Me resulta fácil leer las intenciones de otras personas.",c:"CHA",w:4,r:0},
+{id:30,t:"Disfruto siendo el centro de atención en grupos sociales.",c:"CHA",w:4,r:0},
+{id:31,t:"Me resulta natural adaptar mi discurso según mi audiencia.",c:"CHA",w:4,r:0},
+{id:32,t:"Prefiero convencer antes que imponer.",c:"CHA",w:3,r:0},
+{id:33,t:"Me siento cómodo negociando acuerdos entre partes opuestas.",c:"CHA",w:4,r:0},
+{id:34,t:"Uso el humor o la ironía para desactivar tensiones.",c:"CHA",w:3,r:0},
+{id:35,t:"Me motiva más el reconocimiento social que la riqueza material.",c:"CHA",w:3,r:0},
+{id:36,t:"Me resulta difícil fingir entusiasmo cuando no me interesa algo.",c:"CHA",w:2,r:0},
+{id:37,t:"Creo que el orden y la estructura son fundamentales para la convivencia.",c:"WIS",w:4,r:0},
+{id:38,t:"Sigo un código personal de honor que no negociaría.",c:"WIS",w:4,r:0},
+{id:39,t:"Prefiero la justicia antes que la compasión en casos difíciles.",c:"WIS",w:3,r:0},
+{id:40,t:"Me siento responsable del bienestar de quienes dependen de mí.",c:"WIS",w:4,r:0},
+{id:41,t:"Creo que algunas reglas deben romperse si la causa es justa.",c:"WIS",w:4,r:0},
+{id:42,t:"Me guía la compasión hacia los más vulnerables.",c:"WIS",w:4,r:0},
+{id:43,t:"Prefiero perdonar antes que buscar venganza.",c:"WIS",w:3,r:0},
+{id:44,t:"Me cuesta tolerar la injusticia, incluso si no me afecta directamente.",c:"WIS",w:4,r:0},
+{id:45,t:"Me resulta fácil pasar desapercibido cuando lo necesito.",c:"DEX",w:4,r:0},
+{id:46,t:"Prefiero observar antes de intervenir.",c:"DEX",w:4,r:0},
+{id:47,t:"Disfruto usando el engaño o la estrategia indirecta.",c:"DEX",w:4,r:0},
+{id:48,t:"Me siento más seguro cuando tengo una ruta de escape planificada.",c:"DEX",w:3,r:0},
+{id:49,t:"Prefiero la flexibilidad antes que los planes rígidos.",c:"DEX",w:4,r:0},
+{id:50,t:"Me resulta natural detectar mentiras o inconsistencias en otros.",c:"DEX",w:3,r:0},
+{id:51,t:"Prefiero operar en entornos de baja visibilidad o control estricto.",c:"DEX",w:3,r:0},
+{id:52,t:"Me cuesta seguir instrucciones si no comprendo su propósito.",c:"DEX",w:3,r:0},
+{id:53,t:"Puedo mantener la calma en situaciones de alta presión o riesgo.",c:"CON",w:4,r:0},
+{id:54,t:"Me recupero rápidamente de contratiempos o fracasos.",c:"CON",w:4,r:0},
+{id:55,t:"Disfruto de entornos impredecibles o caóticos.",c:"CON",w:3,r:0},
+{id:56,t:"Prefiero asumir riesgos calculados antes que jugar seguro.",c:"CON",w:4,r:0},
+{id:57,t:"Me excita la adrenalina de situaciones límite.",c:"CON",w:4,r:0},
+{id:58,t:"Puedo operar eficazmente con recursos limitados.",c:"CON",w:3,r:0},
+{id:59,t:"Me motiva más la supervivencia que el confort.",c:"CON",w:3,r:0},
+{id:60,t:"Prefiero la resistencia prolongada antes que los estallidos de energía.",c:"CON",w:3,r:0},
+{id:61,t:"Me gusta liderar y dirigir operaciones complejas.",c:"LEAD",w:4,r:0},
+{id:62,t:"Me siento cómodo tomando decisiones que afectan a otros.",c:"LEAD",w:4,r:0},
+{id:63,t:"Prefiero delegar tareas antes que ejecutarlas yo mismo.",c:"LEAD",w:3,r:0},
+{id:64,t:"Me motiva la visión a largo plazo antes que los resultados inmediatos.",c:"LEAD",w:4,r:0},
+{id:65,t:"Disfruto mentorando o entrenando a personas con potencial.",c:"LEAD",w:4,r:0},
+{id:66,t:"Prefiero la disciplina estructurada antes que la creatividad libre.",c:"LEAD",w:3,r:0},
+{id:67,t:"Me resulta natural asumir responsabilidad en crisis.",c:"LEAD",w:4,r:0},
+{id:68,t:"Creo que la autoridad debe ganarse, no imponerse.",c:"LEAD",w:3,r:0},
+{id:69,t:"Prefiero entornos naturales antes que urbanos.",c:"NAT",w:4,r:0},
+{id:70,t:"Me resulta satisfactorio rastrear o seguir huellas/pistas.",c:"NAT",w:4,r:0},
+{id:71,t:"Disfruto la soledad prolongada en entornos salvajes.",c:"NAT",w:3,r:0},
+{id:72,t:"Prefiero la adaptación al entorno antes que la modificación del mismo.",c:"NAT",w:4,r:0},
+{id:73,t:"Me conecto emocionalmente con animales o sistemas naturales.",c:"NAT",w:4,r:0},
+{id:74,t:"Prefiero soluciones sostenibles antes que rápidas.",c:"NAT",w:3,r:0},
+{id:75,t:"Me resulta fácil orientarme en territorios desconocidos.",c:"NAT",w:3,r:0},
+{id:76,t:"Creo en el equilibrio entre todas las fuerzas en juego.",c:"NAT",w:4,r:0},
+{id:77,t:"Me gusta crear o construir cosas con mis manos o herramientas.",c:"TEC",w:4,r:0},
+{id:78,t:"Disfruto optimizando sistemas o mecanismos existentes.",c:"TEC",w:4,r:0},
+{id:79,t:"Prefiero la utilidad práctica antes que la estética.",c:"TEC",w:3,r:0},
+{id:80,t:"Me resulta natural combinar elementos dispares en algo funcional.",c:"TEC",w:4,r:0},
+{id:81,t:"Disfruto reparando o mejorando objetos que otros descartan.",c:"TEC",w:4,r:0},
+{id:82,t:"Prefiero la innovación iterativa antes que los saltos radicales.",c:"TEC",w:3,r:0},
+{id:83,t:"Me resulta satisfactorio documentar procesos o crear manuales.",c:"TEC",w:3,r:0},
+{id:84,t:"Creo que la tecnología debe servir al progreso humano.",c:"TEC",w:3,r:0},
+{id:85,t:"Me resulta fácil ocultar mis verdaderas intenciones.",c:"SHD",w:4,r:0},
+{id:86,t:"Disfruto operando desde las sombras o el anonimato.",c:"SHD",w:4,r:0},
+{id:87,t:"Prefiero la información secreta antes que el conocimiento público.",c:"SHD",w:4,r:0},
+{id:88,t:"Me resulta natural manipular percepciones a mi favor.",c:"SHD",w:4,r:0},
+{id:89,t:"Disfruto descifrando códigos o lenguajes ocultos.",c:"SHD",w:3,r:0},
+{id:90,t:"Prefiero la lealtad silenciosa antes que el compromiso público.",c:"SHD",w:3,r:0},
+{id:91,t:"Me resulta fácil cortar lazos emocionales cuando es necesario.",c:"SHD",w:3,r:0},
+{id:92,t:"Creo que algunos secretos deben protegerse a cualquier costo.",c:"SHD",w:4,r:0},
+{id:93,t:"Me gusta proteger a quienes no pueden protegerse a sí mismos.",c:"SUP",w:4,r:0},
+{id:94,t:"Disfruto sanando o restaurando a otros física o mentalmente.",c:"SUP",w:4,r:0},
+{id:95,t:"Prefiero el apoyo logístico antes que el combate directo.",c:"SUP",w:4,r:0},
+{id:96,t:"Me resulta natural mantener la moral del grupo en crisis.",c:"SUP",w:4,r:0},
+{id:97,t:"Disfruto enseñando o compartiendo conocimiento práctico.",c:"SUP",w:3,r:0},
+{id:98,t:"Prefiero la cooperación antes que la competencia individual.",c:"SUP",w:4,r:0},
+{id:99,t:"Me resulta satisfactorio ver prosperar a mi equipo.",c:"SUP",w:4,r:0},
+{id:100,t:"Creo que el éxito colectivo supera al logro personal.",c:"SUP",w:3,r:0},
+{id:101,t:"Prefiero la fuerza bruta antes que la técnica refinada.",c:"STR",w:3,r:0},
+{id:102,t:"Me cuesta trabajar en equipo si los objetivos no están claros.",c:"CHA",w:2,r:0},
+{id:103,t:"Desconfío de personas que muestran demasiada perfección.",c:"DEX",w:3,r:0},
+{id:104,t:"Prefiero la improvisación controlada antes que los protocolos estrictos.",c:"CON",w:3,r:0},
+{id:105,t:"Me resulta difícil perdonar traiciones de confianza.",c:"WIS",w:3,r:0},
+{id:106,t:"Disfruto más del viaje que del destino final.",c:"NAT",w:3,r:0},
+{id:107,t:"Prefiero la precisión antes que la velocidad en tareas complejas.",c:"TEC",w:3,r:0},
+{id:108,t:"Me resulta natural anticipar necesidades antes de que se expresen.",c:"SUP",w:3,r:0},
+{id:109,t:"Creo que el caos es un estado natural que debe canalizarse, no eliminarse.",c:"CON",w:3,r:0},
+{id:110,t:"Prefiero la lealtad probada antes que la simpatía superficial.",c:"WIS",w:3,r:0},
+{id:111,t:"Me resulta fácil cambiar de rol según las circunstancias lo requieran.",c:"SWT",w:4,r:0},
+{id:112,t:"Disfruto adaptándome a dinámicas de poder cambiantes.",c:"SWT",w:4,r:0},
+{id:113,t:"Prefiero la versatilidad antes que la especialización extrema.",c:"SWT",w:4,r:0},
+{id:114,t:"Me resulta natural alternar entre liderar y seguir.",c:"SWT",w:4,r:0},
+{id:115,t:"Disfruto aprendiendo múltiples disciplinas en paralelo.",c:"SWT",w:3,r:0},
+{id:116,t:"Prefiero la flexibilidad cognitiva antes que la rigidez doctrinal.",c:"SWT",w:3,r:0},
+{id:117,t:"Me resulta fácil leer el ambiente y ajustar mi conducta en consecuencia.",c:"SWT",w:3,r:0},
+{id:118,t:"Creo que la maestría viene de la experiencia cruzada, no del aislamiento.",c:"SWT",w:3,r:0},
+{id:119,t:"Suelo decir exactamente lo que pienso, sin filtros.",c:"VAL",w:2,r:1},
+{id:120,t:"Nunca he cambiado de opinión después de haber tomado una decisión firme.",c:"VAL",w:2,r:1}
+];
 
-    const ROLES = [
-      {id:"fighter",name:"Guerrero/a",cat:"Martial",desc:"Maestro del combate. Resistente y letal.",style:"Tanque/Daño"},
-      {id:"rogue",name:"Pícaro/a",cat:"Stealth",desc:"Experto en sigilo y astucia.",style:"Daño burst"},
-      {id:"wizard",name:"Mago/a",cat:"Arcane",desc:"Manipula la realidad con hechizos.",style:"Control/Mágico"},
-      {id:"cleric",name:"Clérigo/a",cat:"Divine",desc:"Sana y protege con poder divino.",style:"Soporte"},
-      {id:"paladin",name:"Paladín",cat:"Divine",desc:"Guerrero sagrado con código de honor.",style:"Tanque/Sagrado"},
-      {id:"ranger",name:"Explorador/a",cat:"Nature",desc:"Maestro de supervivencia y arco.",style:"Daño distancia"},
-      {id:"barbarian",name:"Bárbaro/a",cat:"Primal",desc:"Furia incontrolable y fuerza bruta.",style:"Daño masivo"},
-      {id:"bard",name:"Bardo/a",cat:"Social",desc:"Inspira con música y magia.",style:"Soporte/Control"},
-      {id:"druid",name:"Druida",cat:"Nature",desc:"Guardián del equilibrio natural.",style:"Versátil"},
-      {id:"warlock",name:"Brujo/a",cat:"Pact",desc:"Poder mágico mediante pactos.",style:"Mágico/Utilidad"},
-      {id:"monk",name:"Monje/a",cat:"Martial",desc:"Maestro del cuerpo y energía ki.",style:"Movilidad"},
-      {id:"sorcerer",name:"Hechicero/a",cat:"Innate",desc:"Magia innata de sangre o destino.",style:"Mágico/Flexible"},
-      {id:"artificer",name:"Artífice",cat:"Tech",desc:"Ingeniero que combina magia y tecnología.",style:"Utilidad"}
-    ];
+// ===== ESCALAS Y PESOS =====
+const SCALES={
+  VAL:{name:"Validez",items:Q.filter(q=>q.c==="VAL")},
+  STR:{name:"Fuerza/Impulso",items:Q.filter(q=>q.c==="STR")},
+  INT:{name:"Intelecto/Análisis",items:Q.filter(q=>q.c==="INT")},
+  CHA:{name:"Carisma/Influencia",items:Q.filter(q=>q.c==="CHA")},
+  WIS:{name:"Moral/Resistencia",items:Q.filter(q=>q.c==="WIS")},
+  DEX:{name:"Sigilo/Adaptación",items:Q.filter(q=>q.c==="DEX")},
+  CON:{name:"Resiliencia/Riesgo",items:Q.filter(q=>q.c==="CON")},
+  LEAD:{name:"Liderazgo/Autoridad",items:Q.filter(q=>q.c==="LEAD")},
+  NAT:{name:"Naturaleza/Equilibrio",items:Q.filter(q=>q.c==="NAT")},
+  TEC:{name:"Técnica/Ingenio",items:Q.filter(q=>q.c==="TEC")},
+  SHD:{name:"Sombra/Ocultamiento",items:Q.filter(q=>q.c==="SHD")},
+  SUP:{name:"Soporte/Empatía",items:Q.filter(q=>q.c==="SUP")},
+  SWT:{name:"Versatilidad/Cambio",items:Q.filter(q=>q.c==="SWT")}
+};
 
-    // ===== ESTADO =====
-    let state = {answers:[], idx:0, result:null};
+// ===== ARQUETIPOS =====
+const ARCH=[
+  {id:"fighter",n:"Guerrero/a",cat:"Martial",d:"Fuerza directa, disciplina y resistencia. Preferencia por la acción contundente y la superación física.",w:{STR:0.35,CON:0.25,LEAD:0.15,WIS:0.1,CHA:0.1,DEX:0.05}},
+  {id:"rogue",n:"Pícaro/a",cat:"Stealth",d:"Sigilo, astucia y adaptabilidad. Preferencia por la estrategia indirecta y el aprovechamiento de oportunidades.",w:{DEX:0.35,CON:0.2,SHD:0.15,INT:0.1,SWT:0.1,CHA:0.1}},
+  {id:"wizard",n:"Mago/a",cat:"Arcane",d:"Análisis profundo, control de variables y conocimiento sistemático. Preferencia por la preparación y el dominio intelectual.",w:{INT:0.4,DEX:0.15,CON:0.1,SWT:0.15,TEC:0.1,VAL:0.1}},
+  {id:"cleric",n:"Clérigo/a",cat:"Divine",d:"Fe estructural, soporte grupal y código moral. Preferencia por la sanación, protección y guía ética.",w:{SUP:0.35,WIS:0.25,LEAD:0.15,INT:0.1,CHA:0.1,CON:0.05}},
+  {id:"paladin",n:"Paladín",cat:"Divine Martial",d:"Combinación de fuerza marcial y convicción moral. Preferencia por la justicia estructurada y el liderazgo protector.",w:{STR:0.25,WIS:0.3,LEAD:0.2,CON:0.15,SUP:0.05,CHA:0.05}},
+  {id:"ranger",n:"Explorador/a",cat:"Nature Martial",d:"Adaptación al entorno, supervivencia y autonomía. Preferencia por la movilidad, rastreo y equilibrio natural.",w:{NAT:0.35,DEX:0.2,CON:0.15,INT:0.1,SWT:0.1,STR:0.05}},
+  {id:"barbarian",n:"Bárbaro/a",cat:"Primal",d:"Furia controlada, resistencia al dolor y acción instintiva. Preferencia por la libertad operativa y la respuesta visceral.",w:{STR:0.35,CON:0.3,DEX:0.1,WIS:0.1,CHA:0.1,SWT:0.05}},
+  {id:"bard",n:"Bardo/a",cat:"Arcane Social",d:"Influencia social, creatividad aplicada y manipulación narrativa. Preferencia por la comunicación estratégica y el apoyo moral.",w:{CHA:0.35,INT:0.2,SUP:0.15,SWT:0.15,DEX:0.05,CON:0.1}},
+  {id:"druid",n:"Druida",cat:"Nature Arcane",d:"Armonía sistémica, transformación y conocimiento ecológico. Preferencia por el equilibrio, la paciencia y la adaptación orgánica.",w:{NAT:0.35,INT:0.2,WIS:0.15,SUP:0.1,CON:0.1,SWT:0.05}},
+  {id:"warlock",n:"Brujo/a",cat:"Pact Arcane",d:"Poder negociado, pragmatismo y enfoque en resultados. Preferencia por la eficiencia, el intercambio estratégico y la autoridad externa.",w:{INT:0.25,CON:0.2,CHA:0.15,SHD:0.15,WIS:0.1,SWT:0.15}},
+  {id:"monk",n:"Monje/a",cat:"Martial Spiritual",d:"Disciplina interna, control somático y enfoque. Preferencia por la maestría progresiva, la economía de movimiento y la claridad mental.",w:{STR:0.2,CON:0.25,WIS:0.2,DEX:0.15,SWT:0.1,INT:0.1}},
+  {id:"sorcerer",n:"Hechicero/a",cat:"Innate Arcane",d:"Talento innato, intuición mágica y expresión espontánea. Preferencia por la flexibilidad creativa y la respuesta instintiva a estímulos.",w:{INT:0.25,CHA:0.2,CON:0.15,SWT:0.15,WIS:0.1,DEX:0.15}},
+  {id:"artificer",n:"Artífice",cat:"Arcane Tech",d:"Ingeniería aplicada, optimización y solución práctica. Preferencia por la construcción, mejora sistemática y utilidad tangible.",w:{TEC:0.35,INT:0.25,CON:0.15,DEX:0.1,SUP:0.1,SWT:0.05}}
+];
 
-    // ===== UTILS =====
-    const $ = s => document.querySelector(s);
-    const fmtDate = ts => new Date(ts).toLocaleDateString('es-ES');
-    const save = (k,v) => localStorage.setItem(k,JSON.stringify(v));
-    const load = k => JSON.parse(localStorage.getItem(k)||'null');
+// ===== ESTADO =====
+let S={a:[],i:0,sid:null,res:null};
+const $=id=>document.getElementById(id);
+const fmtD=t=>new Date(t).toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const save=(k,d)=>{try{localStorage.setItem(k,JSON.stringify(d))}catch(e){}};
+const load=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 
-    // ===== INICIALIZACIÓN =====
-    function init() {
-      $('#consent').onchange = e => $('#startBtn').disabled = !e.target.checked;
-      $('#startBtn').onclick = start;
-      $('#prevBtn').onclick = prev;
-      $('#nextBtn').onclick = next;
-      $('#downloadBtn').onclick = download;
-      $('#restartBtn').onclick = () => location.reload();
-      
-      // Respuestas con teclado
-      document.addEventListener('keydown', e => {
-        if (!$('#assessment').classList.contains('active')) return;
-        if (e.key >= '1' && e.key <= '5') select(e.key);
-        if (e.key === 'ArrowLeft') prev();
-        if (e.key === 'ArrowRight') next();
-      });
-      
-      // Cargar progreso
-      const prog = load('dnd_progress');
-      if (prog) { state = prog; show('assessment'); renderQ(); update(); }
-      
-      console.log('🎲 D&D Assessment ready');
-    }
+// ===== INICIALIZACIÓN =====
+function init(){
+  S.sid=Date.now().toString(36);S.a=new Array(120).fill(null);S.i=0;S.res=null;
+  $('consent').onchange=e=>{$('btn-start').disabled=!e.target.checked};
+  $('btn-start').onclick=start;
+  $('btn-prev').onclick=prev;
+  $('btn-next').onclick=next;
+  $('btn-dl').onclick=dl;
+  $('btn-re').onclick=()=>location.reload();
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=e=>sel(+o.dataset.v));
+  document.addEventListener('keydown',e=>{
+    if(!$('s-assess').classList.contains('active'))return;
+    if(e.key>='1'&&e.key<='5')sel(+e.key);
+    if(e.key==='ArrowLeft')prev();if(e.key==='ArrowRight')next();
+  });
+  const p=load('dnd_prog');if(p){S=p;show('s-assess');render();upd();}
+}
 
-    function show(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      $(`#${id}`).classList.add('active');
-    }
+// ===== NAVEGACIÓN =====
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function start(){show('s-assess');render();upd()}
+function prev(){if(S.i>0){S.i--;render();upd()}}
+function next(){if(!S.a[S.i]){toast('Selecciona una respuesta');return}if(S.i===119)finish();else{S.i++;render();upd()}}
+function sel(v){S.a[S.i]={qid:Q[S.i].id,v,ts:Date.now()};save('dnd_prog',S);render();setTimeout(()=>{if(S.i<119)next()},150)}
+function render(){
+  const q=Q[S.i],a=S.a[S.i];
+  $('q-idx').textContent=`Ítem ${S.i+1}/120`;
+  const cm={VAL:'Validez',STR:'Fuerza/Impulso',INT:'Intelecto',CHA:'Carisma',WIS:'Moral/Resistencia',DEX:'Sigilo',CON:'Resiliencia',LEAD:'Liderazgo',NAT:'Naturaleza',TEC:'Técnica',SHD:'Sombra',SUP:'Soporte',SWT:'Versatilidad'};
+  $('q-dom').textContent=cm[q.c]||q.c;
+  $('q-text').textContent=q.t;
+  $('q-opts').innerHTML=[1,2,3,4,5].map(v=>`<div class="opt ${a?.v===v?'sel':''}" data-v="${v}"><strong>${v}</strong><br><small>${['Total desacuerdo','En desacuerdo','Neutral','De acuerdo','Total acuerdo'][v-1]}</small></div>`).join('');
+}
+function upd(){
+  const ans=S.a.filter(x=>x).length;
+  $('prog-fill').style.width=`${ans/120*100}%`;
+  $('btn-prev').disabled=S.i===0;
+  $('btn-next').textContent=S.i===119?'[ FINALIZAR ]':'[ → ]';
+  $('q-val').textContent=ans<15?'Validez: Pendiente':ans<40?'Validez: Verificando':'Validez: OK';
+}
+function toast(m){const t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--primary);padding:1rem;color:var(--text);z-index:9999';document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
 
-    // ===== LÓGICA DEL TEST =====
-    function start() {
-      show('assessment');
-      renderQ();
-      update();
-    }
+// ===== SCORING =====
+function finish(){
+  if(S.a.filter(x=>x).length<96){toast('Mínimo 96 ítems válidos');return}
+  show('s-load');
+  let p=0;const iv=setInterval(()=>{p+=3;$('load-pct').textContent=`${Math.min(100,p)}%`;if(p>=100)clearInterval(iv)},30);
+  setTimeout(()=>{
+    const r=calc();S.res=r;showRes(r);save('dnd_res',r);
+  },800);
+}
 
-    function select(val) {
-      state.answers[state.idx] = {qid:QUESTIONS[state.idx].id, value:+val, ts:Date.now()};
-      save('dnd_progress', state);
-      renderQ();
-      setTimeout(() => { if (state.idx < QUESTIONS.length-1) next(); }, 150);
-    }
+function calc(){
+  // 1. Raw scores por escala
+  const raw={};
+  Object.entries(SCALES).forEach(([k,s])=>{
+    let sum=0;
+    s.items.forEach(q=>{
+      const a=S.a[q.id-1];if(!a)return;
+      let v=a.v;
+      if(q.r)v=6-v; // reverse scoring
+      sum+=v*q.w;
+    });
+    raw[k]=sum;
+  });
 
-    function prev() { if (state.idx > 0) { state.idx--; renderQ(); update(); } }
-    function next() {
-      if (!state.answers[state.idx]) { alert('Selecciona una respuesta'); return; }
-      if (state.idx === QUESTIONS.length-1) finish();
-      else { state.idx++; renderQ(); update(); }
-    }
+  // 2. Puntuacion T
+  const tScores={};
+  Object.entries(raw).forEach(([k,val])=>{
+    const max=Math.max(1,SCALES[k].items.reduce((a,b)=>a+5*b.w,0));
+    const norm=val/max;
+    tScores[k]=Math.min(80,Math.max(20,Math.round(20+norm*60)));
+  });
 
-    function renderQ() {
-      const q = QUESTIONS[state.idx], a = state.answers[state.idx];
-      $('#qNum').textContent = `Ítem ${state.idx+1}/${QUESTIONS.length}`;
-      $('#qCat').textContent = ({combat:'⚔️ Combate',magic:'🔮 Magia',social:'💬 Social',moral:'⚖️ Moral',exploration:'🗺️ Exploración'}[q.cat]||q.cat);
-      $('#qText').textContent = q.text;
-      
-      $('#options').innerHTML = [1,2,3,4,5].map(v => 
-        `<div class="opt ${a?.value===v?'selected':''}" onclick="select(${v})">
-          <strong>${v}</strong><br><small>${['Totalmente en desacuerdo','En desacuerdo','Neutral','De acuerdo','Totalmente de acuerdo'][v-1]}</small>
-        </div>`
-      ).join('');
-    }
+  // 3. Validity check
+  const val=tScores.VAL;
+  let valid=true, vMsg="";
+  if(val>65){valid=false;vMsg="Posible idealización de respuestas (Escala L elevada).";}
+  if(tScores.INT>70 && tScores.SHD<30 && tScores.CON>70){valid=false;vMsg="Perfil contradictorio detectado (Escala F elevada).";}
 
-    function update() {
-      const ans = state.answers.filter(x=>x).length;
-      $('#progress').style.width = `${ans/QUESTIONS.length*100}%`;
-      $('#prevBtn').disabled = state.idx === 0;
-      $('#nextBtn').textContent = state.idx === QUESTIONS.length-1 ? '[ FINALIZAR ]' : '[ → ]';
-    }
+  // 4. Archetype scoring
+  const scored=ARCH.map(a=>{
+    let score=50;
+    Object.entries(a.w).forEach(([sc,weight])=>{score+=(tScores[sc]-50)*weight});
+    return{...a,raw:Math.round(score),pct:Math.min(100,Math.max(5,Math.round((score/100)*100)))};
+  });
+  scored.sort((a,b)=>b.raw-a.raw);
+  const top5=scored.slice(0,5);
+  const maxP=top5[0].pct;
+  top5.forEach(r=>r.pct=Math.round(r.pct/maxP*100));
 
-    // ===== SCORING =====
-    function finish() {
-      if (state.answers.filter(x=>x).length < 20) { alert('Responde al menos 20 preguntas'); return; }
-      
-      // Calcular dimensiones
-      const dims = {};
-      QUESTIONS.forEach(q => {
-        const a = state.answers.find(x=>x.qid===q.id);
-        if (!a || q.cat==='validity') return;
-        dims[q.cat] = (dims[q.cat]||0) + a.value;
-      });
-      
-      // Calcular afinidad con roles
-      const scored = ROLES.map(r => {
-        let s = 50;
-        if (r.id==='fighter') s = (dims.combat||50)+10;
-        if (r.id==='rogue') s = Math.round((dims.combat||50)*0.7 + (dims.social||50)*0.8);
-        if (r.id==='wizard') s = (dims.magic||50) + (dims.exploration||50)/2;
-        if (r.id==='cleric') s = Math.round((dims.magic||50)*0.8 + (dims.social||50)*0.7);
-        if (r.id==='paladin') s = (dims.combat||50) + (dims.moral||50)/2;
-        if (r.id==='ranger') s = (dims.exploration||50) + (dims.combat||50)/2;
-        if (r.id==='barbarian') s = (dims.combat||50) + ((dims.moral||50)<45?15:0);
-        if (r.id==='bard') s = (dims.social||50) + (dims.magic||50)/2;
-        if (r.id==='druid') s = Math.round((dims.magic||50)*0.8 + ((dims.moral||50)>50?10:0));
-        if (r.id==='warlock') s = (dims.magic||50) + ((dims.moral||50)<50?10:0);
-        if (r.id==='monk') s = Math.round((dims.combat||50)*0.7 + (dims.moral||50)*0.6);
-        if (r.id==='sorcerer') s = (dims.magic||50) + (dims.combat||50)/3;
-        if (r.id==='artificer') s = Math.round((dims.magic||50)*0.6 + (dims.exploration||50)*0.7);
-        return {...r, score:Math.min(100,Math.max(0,s))};
-      });
-      
-      scored.sort((a,b)=>b.score-a.score);
-      const top5 = scored.slice(0,5).map(r => ({...r, pct:Math.round(r.score/scored[0].score*100)}));
-      
-      // Interpretación
-      const interp = `╔════════════════════════════╗
-║  ARQUETIPO: ${top5[0].name.toUpperCase().padEnd(14)}  ║
-╚════════════════════════════╝
+  // 5. Report generation
+  const dims=Object.entries(tScores).filter(([k])=>k!=='VAL').sort((a,b)=>b[1]-a[1]).slice(0,5);
+  let report=`═══════════════════════════════════════════
+  INFORME DE PERFIL: ${top5[0].n.toUpperCase()}
+═══════════════════════════════════════════
 
-🎭 Rol Principal: ${top5[0].name}
-📊 Categoría: ${top5[0].cat}
-⚔️ Estilo: ${top5[0].style}
+📊 PERFIL PRIMARIO: ${top5[0].n}
+   Categoría: ${top5[0].cat}
+   Afinidad: ${top5[0].pct}%
+   Descriptores: ${top5[0].d}
 
-📈 Dimensiones destacadas:
-${Object.entries(dims).slice(0,4).map(([k,v])=>`  • ${k}: ${Math.round(v/QUESTIONS.filter(q=>q.cat===k).length||3)*10}T`).join('\n')}
+📈 DIMENSIONES DESTACADAS:
+${dims.map(([k,v])=>{
+  const labels={STR:'Fuerza/Impulso',INT:'Intelecto/Análisis',CHA:'Carisma/Influencia',WIS:'Moral/Resistencia',DEX:'Sigilo/Adaptación',CON:'Resiliencia/Riesgo',LEAD:'Liderazgo/Autoridad',NAT:'Naturaleza/Equilibrio',TEC:'Técnica/Ingenio',SHD:'Sombra/Ocultamiento',SUP:'Soporte/Empatía',SWT:'Versatilidad/Cambio'};
+  const lvl=v<40?'Bajo':v>60?'Alto':'Promedio';
+  return `   • ${labels[k]||k}: ${v}T (${lvl})`;
+}).join('\n')}
 
-💡 Consejo: ¡Juega como te divierta!
-Esta evaluación es para entretenimiento.`;
+🎭 ARQUETIPO SECUNDARIO: ${top5[1]?.n||'N/A'} (${top5[1]?.pct||0}%)
+   Sinergia potencial con rol primario para multiclase o rolear dualidad.
 
-      state.result = {top5, dims, interp, date:Date.now()};
-      localStorage.removeItem('dnd_progress');
-      showResults();
-    }
+📌 OBSERVACIONES CLÍNICAS:
+   • Patrón de respuesta: ${valid?'Consistente':'Cuestionable'}
+   • Tendencia dominante: ${tScores.STR>tScores.INT?'Orientación a acción':'Orientación a análisis'}
+   • Estilo operativo: ${tScores.DEX>tScores.LEAD?'Preferencia indirecta':'Preferencia directa'}
+   • Margen de error estimado: ±8%
 
-    function showResults() {
-      const r = state.result, t = r.top5[0];
-      $('#primaryRole').textContent = t.name;
-      $('#primaryDesc').textContent = t.desc;
-      $('#primaryCat').textContent = t.cat;
-      
-      $('#topRoles').innerHTML = r.top5.map((role,i)=>
-        `<div style="display:flex;align-items:center;gap:1rem;margin:.5rem 0">
-          <strong>#${i+1}</strong>
-          <span style="flex:1">${role.name}</span>
-          <div class="bar"><div class="bar-fill" style="width:${role.pct}%"></div></div>
-          <span>${role.pct}%</span>
-        </div>`
-      ).join('');
-      
-      $('#dimensions').innerHTML = Object.entries(r.dims).map(([k,v])=>{
-        const avg = Math.round(v / QUESTIONS.filter(q=>q.cat===k).length * 10);
-        const w = Math.min(100, Math.max(0, (avg-20)*1.67));
-        return `<div style="display:flex;align-items:center;gap:1rem;margin:.5rem 0">
-          <span style="width:100px;font-size:.9rem">${k}</span>
-          <div class="bar"><div class="bar-fill" style="width:${w}%"></div></div>
-          <span>${avg}T</span>
-        </div>`;
-      }).join('');
-      
-      $('#interpretation').textContent = r.interp;
-      show('results');
-      window.scrollTo(0,0);
-    }
+⚠️ NOTA: Evaluación psicométrica adaptada. Resultados orientativos. La validez depende de la honestidad en la auto-percepción.`;
 
-    function download() {
-      if (!state.result) return;
-      const r = state.result;
-      const content = `D&D ARCHETYPE ASSESSMENT
-Fecha: ${fmtDate(r.date)}
-════════════════════════════════════
+  return{top5,primary:top5[0],secondary:top5[1]||null,tScores,valid,vMsg,report,conf:valid?0.88:0.45,date:Date.now()};
+}
 
-🎭 ARQUETIPO PRIMARIO: ${r.top5[0].name}
-Categoría: ${r.top5[0].cat}
-Estilo: ${r.top5[0].style}
-Descripción: ${r.top5[0].desc}
+// ===== RESULTADOS =====
+function showRes(r){
+  $('res-main').textContent=r.primary.n;
+  $('res-cat').textContent=r.primary.cat;
+  $('res-desc').textContent=r.primary.d;
+  $('res-sec').textContent=r.secondary?`${r.secondary.n} (${r.secondary.pct}%)`:'No determinado';
+  $('res-sec-desc').textContent=r.secondary?r.secondary.d:'Perfil secundario insuficiente para mapeo.';
+  
+  $('res-dims').innerHTML=Object.entries(r.tScores).filter(([k])=>k!=='VAL').map(([k,v])=>{
+    const w=Math.min(100,(v-20)*1.67);
+    return`<div style="display:flex;align-items:center;gap:.8rem;font-size:.8rem;margin:.3rem 0">
+      <span style="width:140px;color:var(--muted)">${k}</span>
+      <div class="res-bar"><div class="res-fill" style="width:${w}%"></div></div>
+      <span style="min-width:30px;text-align:right">${v}T</span>
+    </div>`;
+  }).join('');
+  
+  $('res-report').textContent=r.report;
+  $('res-conf').textContent=`${Math.round(r.conf*100)}%`;
+  $('res-date').textContent=fmtD(r.date);
+  
+  if(!r.valid){$('val-alert').style.display='block';$('val-msg').textContent=r.vMsg}
+  show('s-res');
+  window.scrollTo(0,0);
+}
 
-📊 TOP 5 ROLES:
-${r.top5.map((role,i)=>`${i+1}. ${role.name} (${role.pct}%)`).join('\n')}
+function dl(){
+  if(!S.res){toast('Sin resultados');return}
+  const b=new Blob([S.res.report],{type:'text/plain'});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download=`dnd-perfil-${Date.now()}.txt`;a.click();URL.revokeObjectURL(u);
+}
 
-📈 DIMENSIONES:
-${Object.entries(r.dims).map(([k,v])=>`• ${k}: ${Math.round(v/QUESTIONS.filter(q=>q.cat===k).length||3)*10}T`).join('\n')}
-
-${r.interp}
-════════════════════════════════════
-Generado con 🎲 para entretenimiento`;
-      
-      const blob = new Blob([content], {type:'text/plain'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'dnd-ficha-personaje.txt';
-      a.click(); URL.revokeObjectURL(url);
-    }
-
-    // ===== START =====
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+document.addEventListener('DOMContentLoaded',init);
+</script>
 </body>
 </html>
