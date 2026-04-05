@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>D&D Archetype Profile</title>
+  <title>D&D Arquetipos</title>
   <style>
-    :root{--bg:#050508;--surface:#0f0f16;--border:#1e1e2a;--primary:#00ff9d;--primary-dim:#00cc7a;--accent:#ff6b35;--text:#e0e6ed;--muted:#8b9bb4;--dim:#4a5568;--warn:#ffd166;--err:#ef476f}
+    :root{--bg:#050508;--surface:#0f0f16;--border:#1e1e2a;--primary:#00ff9d;--primary-dim:#00cc7a;--text:#e0e6ed;--muted:#8b9bb4;--dim:#4a5568;--warn:#ffd166}
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Courier New',monospace;background:var(--bg);color:var(--text);line-height:1.5;padding:1rem;min-height:100vh}
     .grid{max-width:900px;margin:0 auto}
@@ -22,14 +22,14 @@
     .prog-fill{height:100%;background:var(--primary);width:0;transition:width .25s}
     .q-box{min-height:80px;margin:1rem 0;padding:1rem;background:rgba(0,255,157,.03);border-left:3px solid var(--primary)}
     .opts{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin:1rem 0}
-    .opt{padding:.8rem .3rem;text-align:center;border:1px solid var(--border);cursor:pointer;font-size:.75rem;background:var(--surface)}
+    .opt{padding:.8rem .3rem;text-align:center;border:1px solid var(--border);cursor:pointer;font-size:.75rem;background:var(--surface);user-select:none;transition:all .15s}
     .opt:hover,.opt.sel{border-color:var(--primary);background:rgba(0,255,157,.08);color:var(--primary)}
     .nav{display:flex;justify-content:space-between;margin-top:1rem}
     .res-bar{height:8px;background:var(--border);border-radius:2px;margin:.3rem 0;overflow:hidden}
     .res-fill{height:100%;background:var(--primary);border-radius:2px}
     .tag{display:inline-block;padding:.2rem .5rem;background:rgba(0,255,157,.1);border:1px solid var(--primary);font-size:.65rem;margin:.2rem}
     .alert{padding:1rem;border:1px solid var(--warn);background:rgba(255,209,102,.05);margin-bottom:1rem;font-size:.85rem}
-    pre{white-space:pre-wrap;font-size:.85rem;color:var(--muted);line-height:1.7;background:var(--surface);padding:1rem;border:1px solid var(--border)}
+    pre{white-space:pre-wrap;font-size:.85rem;color:var(--muted);line-height:1.7;background:var(--surface);padding:1rem;border:1px solid var(--border);max-height:60vh;overflow-y:auto}
     .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;font-size:.8rem;margin:1rem 0}
     .meta span{color:var(--muted)}
     .meta strong{color:var(--text)}
@@ -40,7 +40,7 @@
 <body>
 <div class="grid">
   <header class="hdr">
-    <h1>D&D ARCHETYPE PROFILE<span style="animation:blink 1s infinite">█</span></h1>
+    <h1>D&D ARQUETIPOS<span style="animation:blink 1s infinite">█</span></h1>
     <div class="sub">Evaluación psicométrica de arquetipos</div>
   </header>
 
@@ -56,14 +56,14 @@
         <input type="checkbox" id="consent" style="margin-top:3px">
         <span>Acepto participar.</span>
       </label>
-      <button id="btn-start" class="btn" disabled>[ INICIAR PROTOCOLO ]</button>
+      <button id="btn-start" class="btn" disabled>[ INICIAR ]</button>
     </div>
   </section>
 
   <section id="s-assess" class="screen">
     <div class="prog"><div class="prog-fill" id="prog-fill"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--dim)">
-      <span id="q-idx">Ítem 1/120</span><span id="q-dom">Dominio</span><span id="q-val">Validez: OK</span>
+      <span id="q-idx">Ítem 1/120</span><span id="q-dom">Dominio</span><span id="q-val">Validez: Pendiente</span>
     </div>
     <div class="q-box" id="q-text">Cargando...</div>
     <div class="opts" id="q-opts"></div>
@@ -116,10 +116,9 @@
     </div>
   </section>
 </div>
+
 <script>
 // ===== BANCO DE 120 ÍTEMS =====
-// Estructura: id, texto, categoría, peso, reversa(bool)
-// Categorías: STR(combat), INT(magic/knowledge), CHA(social/lead), WIS(moral/resilience), DEX(stealth/adapt), CON(endurance/risk), VAL(validity)
 const Q=[
 {id:1,t:"Suelo seguir las normas incluso cuando nadie las vigila.",c:"VAL",w:3,r:0},
 {id:2,t:"Nunca he sentido envidia por los logros ajenos.",c:"VAL",w:3,r:0},
@@ -243,7 +242,6 @@ const Q=[
 {id:120,t:"Nunca he cambiado de opinión después de haber tomado una decisión firme.",c:"VAL",w:2,r:1}
 ];
 
-// ===== ESCALAS Y PESOS =====
 const SCALES={
   VAL:{name:"Validez",items:Q.filter(q=>q.c==="VAL")},
   STR:{name:"Fuerza/Impulso",items:Q.filter(q=>q.c==="STR")},
@@ -260,7 +258,6 @@ const SCALES={
   SWT:{name:"Versatilidad/Cambio",items:Q.filter(q=>q.c==="SWT")}
 };
 
-// ===== ARQUETIPOS =====
 const ARCH=[
   {id:"fighter",n:"Guerrero/a",cat:"Martial",d:"Fuerza directa, disciplina y resistencia. Preferencia por la acción contundente y la superación física.",w:{STR:0.35,CON:0.25,LEAD:0.15,WIS:0.1,CHA:0.1,DEX:0.05}},
   {id:"rogue",n:"Pícaro/a",cat:"Stealth",d:"Sigilo, astucia y adaptabilidad. Preferencia por la estrategia indirecta y el aprovechamiento de oportunidades.",w:{DEX:0.35,CON:0.2,SHD:0.15,INT:0.1,SWT:0.1,CHA:0.1}},
@@ -277,14 +274,11 @@ const ARCH=[
   {id:"artificer",n:"Artífice",cat:"Arcane Tech",d:"Ingeniería aplicada, optimización y solución práctica. Preferencia por la construcción, mejora sistemática y utilidad tangible.",w:{TEC:0.35,INT:0.25,CON:0.15,DEX:0.1,SUP:0.1,SWT:0.05}}
 ];
 
-// ===== ESTADO =====
 let S={a:[],i:0,sid:null,res:null};
 const $=id=>document.getElementById(id);
-const fmtD=t=>new Date(t).toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
 const save=(k,d)=>{try{localStorage.setItem(k,JSON.stringify(d))}catch(e){}};
 const load=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 
-// ===== INICIALIZACIÓN =====
 function init(){
   S.sid=Date.now().toString(36);S.a=new Array(120).fill(null);S.i=0;S.res=null;
   $('consent').onchange=e=>{$('btn-start').disabled=!e.target.checked};
@@ -293,21 +287,39 @@ function init(){
   $('btn-next').onclick=next;
   $('btn-dl').onclick=dl;
   $('btn-re').onclick=()=>location.reload();
-  document.querySelectorAll('.opt').forEach(o=>o.onclick=e=>sel(+o.dataset.v));
+  
+  $('q-opts').addEventListener('click', e => {
+    const opt = e.target.closest('.opt');
+    if (opt) sel(+opt.dataset.v);
+  });
+
   document.addEventListener('keydown',e=>{
     if(!$('s-assess').classList.contains('active'))return;
     if(e.key>='1'&&e.key<='5')sel(+e.key);
-    if(e.key==='ArrowLeft')prev();if(e.key==='ArrowRight')next();
+    if(e.key==='ArrowLeft')prev();
+    if(e.key==='ArrowRight')next();
   });
-  const p=load('dnd_prog');if(p){S=p;show('s-assess');render();upd();}
+
+  const p=load('dnd_prog');
+  if(p && p.a && p.a.length){
+    S=p;show('s-assess');render();upd();
+  }
 }
 
-// ===== NAVEGACIÓN =====
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
 function start(){show('s-assess');render();upd()}
 function prev(){if(S.i>0){S.i--;render();upd()}}
-function next(){if(!S.a[S.i]){toast('Selecciona una respuesta');return}if(S.i===119)finish();else{S.i++;render();upd()}}
-function sel(v){S.a[S.i]={qid:Q[S.i].id,v,ts:Date.now()};save('dnd_prog',S);render();setTimeout(()=>{if(S.i<119)next()},150)}
+function next(){
+  if(!S.a[S.i]){alert('Selecciona una respuesta');return}
+  if(S.i===119)finish();
+  else{S.i++;render();upd()}
+}
+function sel(v){
+  S.a[S.i]={qid:Q[S.i].id,v,ts:Date.now()};
+  save('dnd_prog',S);
+  render();
+  setTimeout(()=>{if(S.i<119)next()},150);
+}
 function render(){
   const q=Q[S.i],a=S.a[S.i];
   $('q-idx').textContent=`Ítem ${S.i+1}/120`;
@@ -323,11 +335,9 @@ function upd(){
   $('btn-next').textContent=S.i===119?'[ FINALIZAR ]':'[ → ]';
   $('q-val').textContent=ans<15?'Validez: Pendiente':ans<40?'Validez: Verificando':'Validez: OK';
 }
-function toast(m){const t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--primary);padding:1rem;color:var(--text);z-index:9999';document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
 
-// ===== SCORING =====
 function finish(){
-  if(S.a.filter(x=>x).length<96){toast('Mínimo 96 ítems válidos');return}
+  if(S.a.filter(x=>x).length<96){alert('Mínimo 96 ítems válidos');return}
   show('s-load');
   let p=0;const iv=setInterval(()=>{p+=3;$('load-pct').textContent=`${Math.min(100,p)}%`;if(p>=100)clearInterval(iv)},30);
   setTimeout(()=>{
@@ -336,20 +346,18 @@ function finish(){
 }
 
 function calc(){
-  // 1. Raw scores por escala
   const raw={};
   Object.entries(SCALES).forEach(([k,s])=>{
     let sum=0;
     s.items.forEach(q=>{
       const a=S.a[q.id-1];if(!a)return;
       let v=a.v;
-      if(q.r)v=6-v; // reverse scoring
+      if(q.r)v=6-v;
       sum+=v*q.w;
     });
     raw[k]=sum;
   });
 
-  // 2. Puntuacion T
   const tScores={};
   Object.entries(raw).forEach(([k,val])=>{
     const max=Math.max(1,SCALES[k].items.reduce((a,b)=>a+5*b.w,0));
@@ -357,13 +365,11 @@ function calc(){
     tScores[k]=Math.min(80,Math.max(20,Math.round(20+norm*60)));
   });
 
-  // 3. Validity check
   const val=tScores.VAL;
   let valid=true, vMsg="";
   if(val>65){valid=false;vMsg="Posible idealización de respuestas (Escala L elevada).";}
   if(tScores.INT>70 && tScores.SHD<30 && tScores.CON>70){valid=false;vMsg="Perfil contradictorio detectado (Escala F elevada).";}
 
-  // 4. Archetype scoring
   const scored=ARCH.map(a=>{
     let score=50;
     Object.entries(a.w).forEach(([sc,weight])=>{score+=(tScores[sc]-50)*weight});
@@ -374,39 +380,37 @@ function calc(){
   const maxP=top5[0].pct;
   top5.forEach(r=>r.pct=Math.round(r.pct/maxP*100));
 
-  // 5. Report generation
   const dims=Object.entries(tScores).filter(([k])=>k!=='VAL').sort((a,b)=>b[1]-a[1]).slice(0,5);
   let report=`═══════════════════════════════════════════
   INFORME DE PERFIL: ${top5[0].n.toUpperCase()}
 ═══════════════════════════════════════════
 
-📊 PERFIL PRIMARIO: ${top5[0].n}
+PERFIL PRIMARIO: ${top5[0].n}
    Categoría: ${top5[0].cat}
    Afinidad: ${top5[0].pct}%
    Descriptores: ${top5[0].d}
 
-📈 DIMENSIONES DESTACADAS:
+DIMENSIONES DESTACADAS:
 ${dims.map(([k,v])=>{
   const labels={STR:'Fuerza/Impulso',INT:'Intelecto/Análisis',CHA:'Carisma/Influencia',WIS:'Moral/Resistencia',DEX:'Sigilo/Adaptación',CON:'Resiliencia/Riesgo',LEAD:'Liderazgo/Autoridad',NAT:'Naturaleza/Equilibrio',TEC:'Técnica/Ingenio',SHD:'Sombra/Ocultamiento',SUP:'Soporte/Empatía',SWT:'Versatilidad/Cambio'};
   const lvl=v<40?'Bajo':v>60?'Alto':'Promedio';
   return `   • ${labels[k]||k}: ${v}T (${lvl})`;
 }).join('\n')}
 
-🎭 ARQUETIPO SECUNDARIO: ${top5[1]?.n||'N/A'} (${top5[1]?.pct||0}%)
+ARQUETIPO SECUNDARIO: ${top5[1]?.n||'N/A'} (${top5[1]?.pct||0}%)
    Sinergia potencial con rol primario para multiclase o rolear dualidad.
 
-📌 OBSERVACIONES CLÍNICAS:
+OBSERVACIONES CLÍNICAS:
    • Patrón de respuesta: ${valid?'Consistente':'Cuestionable'}
    • Tendencia dominante: ${tScores.STR>tScores.INT?'Orientación a acción':'Orientación a análisis'}
    • Estilo operativo: ${tScores.DEX>tScores.LEAD?'Preferencia indirecta':'Preferencia directa'}
    • Margen de error estimado: ±8%
 
-⚠️ NOTA: Evaluación psicométrica adaptada. Resultados orientativos. La validez depende de la honestidad en la auto-percepción.`;
+NOTA: Evaluación psicométrica adaptada.`;
 
   return{top5,primary:top5[0],secondary:top5[1]||null,tScores,valid,vMsg,report,conf:valid?0.88:0.45,date:Date.now()};
 }
 
-// ===== RESULTADOS =====
 function showRes(r){
   $('res-main').textContent=r.primary.n;
   $('res-cat').textContent=r.primary.cat;
@@ -425,15 +429,15 @@ function showRes(r){
   
   $('res-report').textContent=r.report;
   $('res-conf').textContent=`${Math.round(r.conf*100)}%`;
-  $('res-date').textContent=fmtD(r.date);
+  const d=new Date(r.date);
+  $('res-date').textContent=d.toLocaleDateString('es-ES');
   
   if(!r.valid){$('val-alert').style.display='block';$('val-msg').textContent=r.vMsg}
-  show('s-res');
-  window.scrollTo(0,0);
+  show('s-res');window.scrollTo(0,0);
 }
 
 function dl(){
-  if(!S.res){toast('Sin resultados');return}
+  if(!S.res){alert('Sin resultados');return}
   const b=new Blob([S.res.report],{type:'text/plain'});
   const u=URL.createObjectURL(b);
   const a=document.createElement('a');a.href=u;a.download=`dnd-perfil-${Date.now()}.txt`;a.click();URL.revokeObjectURL(u);
