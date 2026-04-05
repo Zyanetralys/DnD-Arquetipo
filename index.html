@@ -1,5 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D&D Arquetipos</title>
+  <style>
+    :root{--bg:#050508;--surface:#0f0f16;--border:#1e1e2a;--primary:#00ff9d;--text:#e0e6ed;--muted:#8b9bb4;--dim:#4a5568}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:monospace;background:var(--bg);color:var(--text);padding:1rem;line-height:1.5}
+    .grid{max-width:800px;margin:0 auto}
+    .hdr{border:1px solid var(--primary);padding:1rem;margin-bottom:1rem;text-align:center}
+    .hdr h1{color:var(--primary);font-size:1.2rem;text-transform:uppercase;letter-spacing:2px}
+    .screen{display:none}
+    .screen.active{display:block}
+    .card{background:var(--surface);border:1px solid var(--border);padding:1rem;margin-bottom:1rem}
+    .btn{background:var(--surface);border:1px solid var(--primary);color:var(--primary);padding:.5rem 1rem;cursor:pointer;font-family:inherit}
+    .btn:hover{background:rgba(0,255,157,.1)}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .prog{height:4px;background:var(--border);margin:1rem 0}
+    .prog-fill{height:100%;background:var(--primary);width:0;transition:width .2s}
+    .q-box{padding:1rem;background:rgba(0,255,157,.03);border-left:3px solid var(--primary);margin:1rem 0;min-height:60px}
+    .opts{display:grid;grid-template-columns:repeat(5,1fr);gap:.3rem;margin:1rem 0}
+    .opt{padding:.6rem;text-align:center;border:1px solid var(--border);cursor:pointer;font-size:.8rem;background:var(--surface)}
+    .opt:hover,.opt.sel{border-color:var(--primary);background:rgba(0,255,157,.1);color:var(--primary)}
+    .nav{display:flex;justify-content:space-between;margin-top:1rem}
+    .res-bar{height:6px;background:var(--border);margin:.3rem 0}
+    .res-fill{height:100%;background:var(--primary)}
+    pre{white-space:pre-wrap;font-size:.8rem;color:var(--muted);background:var(--surface);padding:1rem;border:1px solid var(--border);max-height:40vh;overflow:auto}
+    @media(max-width:600px){.opts{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<div class="grid">
+  <header class="hdr">
+    <h1>D&D ARQUETIPOS</h1>
+    <div style="font-size:.75rem;color:var(--muted)">120 ítems • Escala 1-5</div>
+  </header>
+
+  <!-- WELCOME -->
+  <section id="welcome" class="screen active">
+    <div class="card">
+      <p style="margin-bottom:1rem;color:var(--muted)">Responde según tu tendencia natural. Resultados procesados localmente.</p>
+      <label style="display:flex;align-items:center;gap:.5rem;margin:1rem 0;font-size:.85rem">
+        <input type="checkbox" id="consent">
+        <span>Acepto participar para autoconocimiento.</span>
+      </label>
+      <button id="startBtn" class="btn" style="width:100%" disabled>[ INICIAR ]</button>
+    </div>
+  </section>
+
+  <!-- ASSESSMENT -->
+  <section id="assess" class="screen">
+    <div class="prog"><div id="progFill" class="prog-fill"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--dim)">
+      <span id="qIdx">1/120</span><span id="qCat">---</span>
+    </div>
+    <div class="q-box" id="qText">Cargando...</div>
+    <div class="opts" id="qOpts"></div>
+    <div class="nav">
+      <button id="prevBtn" class="btn" disabled>[ ← ]</button>
+      <button id="nextBtn" class="btn">[ → ]</button>
+    </div>
+  </section>
+
+  <!-- LOADING -->
+  <section id="loading" class="screen">
+    <div class="card" style="text-align:center;padding:2rem">
+      <div style="font-size:2rem;margin-bottom:1rem">⟳</div>
+      <h3>PROCESANDO...</h3>
+      <div id="loadPct" style="color:var(--primary);font-size:1.5rem;margin-top:1rem">0%</div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="screen">
+    <div class="card">
+      <h3 style="color:var(--primary)">ARQUETIPO PRIMARIO</h3>
+      <h2 id="resMain" style="margin:.5rem 0">---</h2>
+      <p id="resDesc" style="color:var(--muted);font-size:.9rem">---</p>
+      <span id="resCat" style="background:rgba(0,255,157,.1);padding:.2rem .5rem;font-size:.7rem">---</span>
+    </div>
+    <div class="card">
+      <h3>SECUNDARIO</h3>
+      <h4 id="resSec">---</h4>
+      <p id="resSecDesc" style="color:var(--muted);font-size:.85rem">---</p>
+    </div>
+    <div class="card">
+      <h3>DIMENSIONES</h3>
+      <div id="resDims"></div>
+    </div>
+    <pre id="resReport"></pre>
+    <div style="display:flex;gap:.5rem;justify-content:center;margin:1rem 0">
+      <button id="dlBtn" class="btn">[ EXPORTAR ]</button>
+      <button id="reBtn" class="btn">[ NUEVO ]</button>
+    </div>
+  </section>
+</div>
+
 <script>
-// ===== BANCO DE 120 ÍTEMS =====
+// ===== DATOS =====
 const Q=[
 {id:1,t:"Suelo seguir las normas incluso cuando nadie las vigila.",c:"VAL",w:3,r:0},
 {id:2,t:"Nunca he sentido envidia por los logros ajenos.",c:"VAL",w:3,r:0},
@@ -123,395 +222,190 @@ const Q=[
 {id:120,t:"Nunca he cambiado de opinión después de haber tomado una decisión firme.",c:"VAL",w:2,r:1}
 ];
 
-const SCALES={
-  VAL:{name:"Validez",items:Q.filter(q=>q.c==="VAL")},
-  STR:{name:"Fuerza/Impulso",items:Q.filter(q=>q.c==="STR")},
-  INT:{name:"Intelecto/Análisis",items:Q.filter(q=>q.c==="INT")},
-  CHA:{name:"Carisma/Influencia",items:Q.filter(q=>q.c==="CHA")},
-  WIS:{name:"Moral/Resistencia",items:Q.filter(q=>q.c==="WIS")},
-  DEX:{name:"Sigilo/Adaptación",items:Q.filter(q=>q.c==="DEX")},
-  CON:{name:"Resiliencia/Riesgo",items:Q.filter(q=>q.c==="CON")},
-  LEAD:{name:"Liderazgo/Autoridad",items:Q.filter(q=>q.c==="LEAD")},
-  NAT:{name:"Naturaleza/Equilibrio",items:Q.filter(q=>q.c==="NAT")},
-  TEC:{name:"Técnica/Ingenio",items:Q.filter(q=>q.c==="TEC")},
-  SHD:{name:"Sombra/Ocultamiento",items:Q.filter(q=>q.c==="SHD")},
-  SUP:{name:"Soporte/Empatía",items:Q.filter(q=>q.c==="SUP")},
-  SWT:{name:"Versatilidad/Cambio",items:Q.filter(q=>q.c==="SWT")}
-};
+const SCALES={VAL:{n:"Validez",i:Q.filter(q=>q.c==="VAL")},STR:{n:"Fuerza",i:Q.filter(q=>q.c==="STR")},INT:{n:"Intelecto",i:Q.filter(q=>q.c==="INT")},CHA:{n:"Carisma",i:Q.filter(q=>q.c==="CHA")},WIS:{n:"Moral",i:Q.filter(q=>q.c==="WIS")},DEX:{n:"Sigilo",i:Q.filter(q=>q.c==="DEX")},CON:{n:"Resiliencia",i:Q.filter(q=>q.c==="CON")},LEAD:{n:"Liderazgo",i:Q.filter(q=>q.c==="LEAD")},NAT:{n:"Naturaleza",i:Q.filter(q=>q.c==="NAT")},TEC:{n:"Técnica",i:Q.filter(q=>q.c==="TEC")},SHD:{n:"Sombra",i:Q.filter(q=>q.c==="SHD")},SUP:{n:"Soporte",i:Q.filter(q=>q.c==="SUP")},SWT:{n:"Versatilidad",i:Q.filter(q=>q.c==="SWT")}};
 
 const ARCH=[
-  {id:"fighter",n:"Guerrero/a",cat:"Martial",d:"Fuerza directa, disciplina y resistencia. Preferencia por la acción contundente y la superación física.",w:{STR:0.35,CON:0.25,LEAD:0.15,WIS:0.1,CHA:0.1,DEX:0.05}},
-  {id:"rogue",n:"Pícaro/a",cat:"Stealth",d:"Sigilo, astucia y adaptabilidad. Preferencia por la estrategia indirecta y el aprovechamiento de oportunidades.",w:{DEX:0.35,CON:0.2,SHD:0.15,INT:0.1,SWT:0.1,CHA:0.1}},
-  {id:"wizard",n:"Mago/a",cat:"Arcane",d:"Análisis profundo, control de variables y conocimiento sistemático. Preferencia por la preparación y el dominio intelectual.",w:{INT:0.4,DEX:0.15,CON:0.1,SWT:0.15,TEC:0.1,VAL:0.1}},
-  {id:"cleric",n:"Clérigo/a",cat:"Divine",d:"Fe estructural, soporte grupal y código moral. Preferencia por la sanación, protección y guía ética.",w:{SUP:0.35,WIS:0.25,LEAD:0.15,INT:0.1,CHA:0.1,CON:0.05}},
-  {id:"paladin",n:"Paladín",cat:"Divine Martial",d:"Combinación de fuerza marcial y convicción moral. Preferencia por la justicia estructurada y el liderazgo protector.",w:{STR:0.25,WIS:0.3,LEAD:0.2,CON:0.15,SUP:0.05,CHA:0.05}},
-  {id:"ranger",n:"Explorador/a",cat:"Nature Martial",d:"Adaptación al entorno, supervivencia y autonomía. Preferencia por la movilidad, rastreo y equilibrio natural.",w:{NAT:0.35,DEX:0.2,CON:0.15,INT:0.1,SWT:0.1,STR:0.05}},
-  {id:"barbarian",n:"Bárbaro/a",cat:"Primal",d:"Furia controlada, resistencia al dolor y acción instintiva. Preferencia por la libertad operativa y la respuesta visceral.",w:{STR:0.35,CON:0.3,DEX:0.1,WIS:0.1,CHA:0.1,SWT:0.05}},
-  {id:"bard",n:"Bardo/a",cat:"Arcane Social",d:"Influencia social, creatividad aplicada y manipulación narrativa. Preferencia por la comunicación estratégica y el apoyo moral.",w:{CHA:0.35,INT:0.2,SUP:0.15,SWT:0.15,DEX:0.05,CON:0.1}},
-  {id:"druid",n:"Druida",cat:"Nature Arcane",d:"Armonía sistémica, transformación y conocimiento ecológico. Preferencia por el equilibrio, la paciencia y la adaptación orgánica.",w:{NAT:0.35,INT:0.2,WIS:0.15,SUP:0.1,CON:0.1,SWT:0.05}},
-  {id:"warlock",n:"Brujo/a",cat:"Pact Arcane",d:"Poder negociado, pragmatismo y enfoque en resultados. Preferencia por la eficiencia, el intercambio estratégico y la autoridad externa.",w:{INT:0.25,CON:0.2,CHA:0.15,SHD:0.15,WIS:0.1,SWT:0.15}},
-  {id:"monk",n:"Monje/a",cat:"Martial Spiritual",d:"Disciplina interna, control somático y enfoque. Preferencia por la maestría progresiva, la economía de movimiento y la claridad mental.",w:{STR:0.2,CON:0.25,WIS:0.2,DEX:0.15,SWT:0.1,INT:0.1}},
-  {id:"sorcerer",n:"Hechicero/a",cat:"Innate Arcane",d:"Talento innato, intuición mágica y expresión espontánea. Preferencia por la flexibilidad creativa y la respuesta instintiva a estímulos.",w:{INT:0.25,CHA:0.2,CON:0.15,SWT:0.15,WIS:0.1,DEX:0.15}},
-  {id:"artificer",n:"Artífice",cat:"Arcane Tech",d:"Ingeniería aplicada, optimización y solución práctica. Preferencia por la construcción, mejora sistemática y utilidad tangible.",w:{TEC:0.35,INT:0.25,CON:0.15,DEX:0.1,SUP:0.1,SWT:0.05}}
+{id:"fighter",n:"Guerrero/a",cat:"Martial",d:"Fuerza directa y resistencia.",w:{STR:.35,CON:.25,LEAD:.15,WIS:.1,CHA:.1,DEX:.05}},
+{id:"rogue",n:"Pícaro/a",cat:"Stealth",d:"Sigilo, astucia y adaptabilidad.",w:{DEX:.35,CON:.2,SHD:.15,INT:.1,SWT:.1,CHA:.1}},
+{id:"wizard",n:"Mago/a",cat:"Arcane",d:"Análisis profundo y control intelectual.",w:{INT:.4,DEX:.15,CON:.1,SWT:.15,TEC:.1,VAL:.1}},
+{id:"cleric",n:"Clérigo/a",cat:"Divine",d:"Fe, soporte y código moral.",w:{SUP:.35,WIS:.25,LEAD:.15,INT:.1,CHA:.1,CON:.05}},
+{id:"paladin",n:"Paladín",cat:"Divine Martial",d:"Fuerza marcial y convicción moral.",w:{STR:.25,WIS:.3,LEAD:.2,CON:.15,SUP:.05,CHA:.05}},
+{id:"ranger",n:"Explorador/a",cat:"Nature",d:"Supervivencia, movilidad y equilibrio natural.",w:{NAT:.35,DEX:.2,CON:.15,INT:.1,SWT:.1,STR:.05}},
+{id:"barbarian",n:"Bárbaro/a",cat:"Primal",d:"Furia controlada y acción instintiva.",w:{STR:.35,CON:.3,DEX:.1,WIS:.1,CHA:.1,SWT:.05}},
+{id:"bard",n:"Bardo/a",cat:"Social",d:"Influencia social y creatividad aplicada.",w:{CHA:.35,INT:.2,SUP:.15,SWT:.15,DEX:.05,CON:.1}},
+{id:"druid",n:"Druida",cat:"Nature Arcane",d:"Armonía sistémica y adaptación orgánica.",w:{NAT:.35,INT:.2,WIS:.15,SUP:.1,CON:.1,SWT:.05}},
+{id:"warlock",n:"Brujo/a",cat:"Pact",d:"Poder negociado y pragmatismo.",w:{INT:.25,CON:.2,CHA:.15,SHD:.15,WIS:.1,SWT:.15}},
+{id:"monk",n:"Monje/a",cat:"Martial Spiritual",d:"Disciplina interna y control somático.",w:{STR:.2,CON:.25,WIS:.2,DEX:.15,SWT:.1,INT:.1}},
+{id:"sorcerer",n:"Hechicero/a",cat:"Innate",d:"Talento innato y expresión espontánea.",w:{INT:.25,CHA:.2,CON:.15,SWT:.15,WIS:.1,DEX:.15}},
+{id:"artificer",n:"Artífice",cat:"Tech",d:"Ingeniería aplicada y utilidad práctica.",w:{TEC:.35,INT:.25,CON:.15,DEX:.1,SUP:.1,SWT:.05}}
 ];
 
 // ===== ESTADO =====
-let S={a:[],i:0,sid:null,res:null};
-const $=id=>document.getElementById(id);
-const save=(k,d)=>{try{localStorage.setItem(k,JSON.stringify(d))}catch(e){}};
-const load=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+let st={a:new Array(120).fill(null),i:0,r:null};
+const E=id=>document.getElementById(id);
 
 // ===== INICIALIZACIÓN =====
-function init(){
-  S.sid=Date.now().toString(36);
-  S.a=new Array(120).fill(null);
-  S.i=0;
-  S.res=null;
-  
+window.onload=function(){
   // Consentimiento
-  const consent=$('consent');
-  const startBtn=$('btn-start');
-  if(consent && startBtn){
+  const consent=E('consent'),startBtn=E('startBtn');
+  if(consent&&startBtn){
     startBtn.disabled=!consent.checked;
-    consent.onchange=e=>{startBtn.disabled=!e.target.checked};
+    consent.onchange=function(){startBtn.disabled=!this.checked};
+    startBtn.onclick=function(){show('assess');render();upd()};
   }
   
-  // Botones principales
-  if($('btn-start')) $('btn-start').onclick=start;
-  if($('btn-prev')) $('btn-prev').onclick=prev;
-  if($('btn-next')) $('btn-next').onclick=next;
-  if($('btn-dl')) $('btn-dl').onclick=dl;
-  if($('btn-re')) $('btn-re').onclick=()=>location.reload();
+  // Navegación
+  if(E('prevBtn'))E('prevBtn').onclick=prev;
+  if(E('nextBtn'))E('nextBtn').onclick=next;
+  if(E('dlBtn'))E('dlBtn').onclick=dl;
+  if(E('reBtn'))E('reBtn').onclick=function(){location.reload()};
   
-  // Delegación de eventos para opciones (CORREGIDO)
-  const opts=$('q-opts');
-  if(opts){
-    opts.onclick=e=>{
+  // Opciones - evento directo en contenedor
+  if(E('qOpts')){
+    E('qOpts').onclick=function(e){
       const opt=e.target.closest('.opt');
-      if(opt && opt.dataset.v){
-        e.stopPropagation();
-        handleAnswer(+opt.dataset.v);
-      }
+      if(opt&&opt.dataset.v)answer(+opt.dataset.v);
     };
   }
-
+  
   // Teclado
-  document.addEventListener('keydown',e=>{
-    if(!$('s-assess') || !$('s-assess').classList.contains('active')) return;
-    if(e.key>='1' && e.key<='5'){
-      e.preventDefault();
-      handleAnswer(+e.key);
-    }
-    if(e.key==='ArrowLeft') {e.preventDefault(); prev();}
-    if(e.key==='ArrowRight') {e.preventDefault(); next();}
-  });
-
-  // Cargar progreso guardado
-  const p=load('dnd_prog');
-  if(p && Array.isArray(p.a) && typeof p.i==='number'){
-    S=p;
-    show('s-assess');
-    render();
-    upd();
-  } else {
-    show('s-welcome');
-  }
-}
+  document.onkeydown=function(e){
+    if(E('assess').className.indexOf('active')<0)return;
+    if(e.key>='1'&&e.key<='5'){e.preventDefault();answer(+e.key)}
+    if(e.key==='ArrowLeft'){e.preventDefault();prev()}
+    if(e.key==='ArrowRight'){e.preventDefault();next()}
+  };
+  
+  // Cargar progreso
+  try{
+    const p=JSON.parse(localStorage.getItem('dnd')||'null');
+    if(p&&p.a&&p.a.length===120){st=p;show('assess');render();upd()}
+  }catch(err){}
+};
 
 // ===== NAVEGACIÓN =====
 function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const el=$(id);
-  if(el) el.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s=>s.className=s.className.replace(' active',''));
+  E(id).className+=' active';
 }
 
-function start(){
-  show('s-assess');
-  render();
-  upd();
-}
-
-function prev(){
-  if(S.i>0){
-    S.i--;
-    render();
-    upd();
-  }
-}
+function prev(){if(st.i>0){st.i--;render();upd()}}
 
 function next(){
-  const current=S.a[S.i];
-  if(!current){
-    alert('Selecciona una respuesta para continuar');
-    return;
-  }
-  if(S.i>=119){
-    finish();
-  } else {
-    S.i++;
-    render();
-    upd();
-  }
+  if(!st.a[st.i]){alert('Selecciona una respuesta');return}
+  if(st.i>=119){finish()}else{st.i++;render();upd()}
 }
 
-// ===== RESPUESTAS (CORREGIDO) =====
-function handleAnswer(value){
-  // Guardar respuesta
-  S.a[S.i]={qid:Q[S.i].id, v:value, ts:Date.now()};
-  save('dnd_prog',S);
-  
-  // Actualizar UI inmediatamente (resaltar selección)
-  renderOptionsHighlight(value);
-  
-  // Avanzar tras breve feedback visual
-  setTimeout(()=>{
-    if(S.i>=119){
-      finish();
-    } else {
-      S.i++;
-      render();
-      upd();
-    }
-  }, 120);
+function answer(v){
+  st.a[st.i]={q:Q[st.i].id,v:v,t:Date.now()};
+  try{localStorage.setItem('dnd',JSON.stringify(st))}catch(e){}
+  // Resaltar visualmente
+  const opts=E('qOpts').querySelectorAll('.opt');
+  opts.forEach(o=>o.className=o.className.replace(' sel',''));
+  opts[v-1].className+=' sel';
+  // Avanzar
+  setTimeout(function(){
+    if(st.i>=119){finish()}else{st.i++;render();upd()}
+  },100);
 }
 
-// Resaltar opción seleccionada sin re-renderizar todo
-function renderOptionsHighlight(selected){
-  const opts=$('q-opts');
-  if(!opts) return;
-  opts.querySelectorAll('.opt').forEach(opt=>{
-    const v=+opt.dataset.v;
-    opt.classList.toggle('sel', v===selected);
-  });
-}
-
-// Renderizar pregunta completa
 function render(){
-  const q=Q[S.i];
-  const a=S.a[S.i];
-  if(!q) return;
-  
-  const idx=$('q-idx');
-  const dom=$('q-dom');
-  const txt=$('q-text');
-  const opts=$('q-opts');
-  
-  if(idx) idx.textContent=`Ítem ${S.i+1}/120`;
-  
-  const cm={VAL:'Validez',STR:'Fuerza/Impulso',INT:'Intelecto',CHA:'Carisma',WIS:'Moral/Resistencia',DEX:'Sigilo',CON:'Resiliencia',LEAD:'Liderazgo',NAT:'Naturaleza',TEC:'Técnica',SHD:'Sombra',SUP:'Soporte',SWT:'Versatilidad'};
-  if(dom) dom.textContent=cm[q.c]||q.c;
-  if(txt) txt.textContent=q.t;
-  
-  if(opts){
-    const labels=['Total desacuerdo','En desacuerdo','Neutral','De acuerdo','Total acuerdo'];
-    opts.innerHTML=[1,2,3,4,5].map(v=>
-      `<div class="opt ${a?.v===v?'sel':''}" data-v="${v}">
-        <strong>${v}</strong><br><small>${labels[v-1]}</small>
-      </div>`
-    ).join('');
-  }
+  const q=Q[st.i],a=st.a[st.i];
+  E('qIdx').textContent=(st.i+1)+'/120';
+  const cm={VAL:'Validez',STR:'Fuerza',INT:'Intelecto',CHA:'Carisma',WIS:'Moral',DEX:'Sigilo',CON:'Resiliencia',LEAD:'Liderazgo',NAT:'Naturaleza',TEC:'Técnica',SHD:'Sombra',SUP:'Soporte',SWT:'Versatilidad'};
+  E('qCat').textContent=cm[q.c]||q.c;
+  E('qText').textContent=q.t;
+  const labels=['Total desacuerdo','En desacuerdo','Neutral','De acuerdo','Total acuerdo'];
+  E('qOpts').innerHTML=[1,2,3,4,5].map(x=>'<div class="opt'+(a&&a.v===x?' sel':'')+'" data-v="'+x+'"><strong>'+x+'</strong><br><small>'+labels[x-1]+'</small></div>').join('');
 }
 
 function upd(){
-  const ans=S.a.filter(x=>x!==null).length;
-  const prog=$('prog-fill');
-  const prevBtn=$('btn-prev');
-  const nextBtn=$('btn-next');
-  const val=$('q-val');
-  
-  if(prog) prog.style.width=`${ans/120*100}%`;
-  if(prevBtn) prevBtn.disabled=S.i===0;
-  if(nextBtn) nextBtn.textContent=S.i===119?'[ FINALIZAR ]':'[ → ]';
-  if(val) val.textContent=ans<15?'Validez: Pendiente':ans<40?'Validez: Verificando':'Validez: OK';
+  const n=st.a.filter(x=>x).length;
+  E('progFill').style.width=(n/120*100)+'%';
+  E('prevBtn').disabled=st.i===0;
+  E('nextBtn').textContent=st.i===119?'[ FINALIZAR ]':'[ → ]';
 }
 
 // ===== SCORING =====
 function finish(){
-  const answered=S.a.filter(x=>x!==null).length;
-  if(answered<96){
-    alert(`Debes responder al menos 96 ítems. Actuales: ${answered}`);
-    return;
-  }
-  
-  show('s-load');
-  
-  // Animación de carga
-  let pct=0;
-  const iv=setInterval(()=>{
-    pct+=3;
-    const el=$('load-pct');
-    if(el) el.textContent=`${Math.min(100,pct)}%`;
-    if(pct>=100) clearInterval(iv);
-  }, 25);
-  
-  setTimeout(()=>{
-    const r=calc();
-    S.res=r;
-    showRes(r);
-    save('dnd_res',r);
-  }, 900);
+  if(st.a.filter(x=>x).length<96){alert('Mínimo 96 ítems');return}
+  show('loading');
+  let p=0;
+  const iv=setInterval(function(){p+=5;E('loadPct').textContent=Math.min(100,p)+'%';if(p>=100)clearInterval(iv)},20);
+  setTimeout(calc,600);
 }
 
 function calc(){
-  // 1. Raw scores por escala
+  // Raw scores
   const raw={};
-  Object.entries(SCALES).forEach(([k,scale])=>{
-    let sum=0;
-    scale.items.forEach(q=>{
-      const a=S.a[q.id-1];
-      if(!a) return;
-      let v=a.v;
-      if(q.r===1) v=6-v; // reverse scoring
-      sum+=v*q.w;
-    });
-    raw[k]=sum;
-  });
-
-  // 2. T-score normalization
-  const tScores={};
-  Object.entries(raw).forEach(([k,val])=>{
-    const scale=SCALES[k];
-    if(!scale) return;
-    const max=Math.max(1, scale.items.reduce((acc,q)=>acc+5*q.w, 0));
-    const norm=val/max;
-    tScores[k]=Math.min(80, Math.max(20, Math.round(20+norm*60)));
-  });
-
-  // 3. Validity check
-  const valScore=tScores.VAL||50;
-  let valid=true, vMsg="";
-  if(valScore>65){valid=false; vMsg="Posible idealización de respuestas (Escala L elevada).";}
-  if((tScores.INT||50)>70 && (tScores.SHD||50)<30 && (tScores.CON||50)>70){valid=false; vMsg="Perfil contradictorio detectado (Escala F elevada).";}
-
-  // 4. Archetype scoring
-  const scored=ARCH.map(arch=>{
-    let score=50;
-    Object.entries(arch.w||{}).forEach(([scale,weight])=>{
-      const t=tScores[scale]||50;
-      score+=(t-50)*weight;
-    });
-    const rawScore=Math.round(score);
-    return{
-      ...arch,
-      raw:rawScore,
-      pct:Math.min(100, Math.max(5, Math.round((rawScore/100)*100)))
-    };
-  });
+  for(var k in SCALES){
+    var s=0;
+    for(var j=0;j<SCALES[k].i.length;j++){
+      var q=SCALES[k].i[j],a=st.a[q.id-1];
+      if(!a)continue;
+      var v=a.v;
+      if(q.r)v=6-v;
+      s+=v*q.w;
+    }
+    raw[k]=s;
+  }
   
-  scored.sort((a,b)=>b.raw-a.raw);
-  const top5=scored.slice(0,5);
-  const maxP=top5[0]?.pct||1;
-  top5.forEach(r=>{r.pct=Math.round(r.pct/maxP*100)});
-
-  // 5. Report generation
-  const dims=Object.entries(tScores)
-    .filter(([k])=>k!=='VAL')
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5);
-    
-  const labels={STR:'Fuerza/Impulso',INT:'Intelecto/Análisis',CHA:'Carisma/Influencia',WIS:'Moral/Resistencia',DEX:'Sigilo/Adaptación',CON:'Resiliencia/Riesgo',LEAD:'Liderazgo/Autoridad',NAT:'Naturaleza/Equilibrio',TEC:'Técnica/Ingenio',SHD:'Sombra/Ocultamiento',SUP:'Soporte/Empatía',SWT:'Versatilidad/Cambio'};
+  // T-scores
+  const t={};
+  for(var k in raw){
+    var sc=SCALES[k],max=Math.max(1,sc.i.reduce(function(a,b){return a+5*b.w},0));
+    var norm=raw[k]/max;
+    t[k]=Math.min(80,Math.max(20,Math.round(20+norm*60)));
+  }
   
-  let report=`═══════════════════════════════════════════
-  INFORME DE PERFIL: ${(top5[0]?.n||'N/A').toUpperCase()}
-═══════════════════════════════════════════
-
-PERFIL PRIMARIO: ${top5[0]?.n||'N/A'}
-   Categoría: ${top5[0]?.cat||'N/A'}
-   Afinidad: ${top5[0]?.pct||0}%
-   Descriptores: ${top5[0]?.d||''}
-
-DIMENSIONES DESTACADAS:
-${dims.map(([k,v])=>{
-  const lvl=v<40?'Bajo':v>60?'Alto':'Promedio';
-  return `   • ${labels[k]||k}: ${v}T (${lvl})`;
-}).join('\n')}
-
-ARQUETIPO SECUNDARIO: ${top5[1]?.n||'N/A'} (${top5[1]?.pct||0}%)
-   Sinergia potencial con rol primario para multiclase o rolear dualidad.
-
-OBSERVACIONES CLÍNICAS:
-   • Patrón de respuesta: ${valid?'Consistente':'Cuestionable'}
-   • Tendencia dominante: ${(tScores.STR||50)>(tScores.INT||50)?'Orientación a acción':'Orientación a análisis'}
-   • Estilo operativo: ${(tScores.DEX||50)>(tScores.LEAD||50)?'Preferencia indirecta':'Preferencia directa'}
-   • Margen de error estimado: ±8%
-
-NOTA: Evaluación psicométrica adaptada. Resultados orientativos.`;
-
-  return{
-    top5,
-    primary:top5[0]||null,
-    secondary:top5[1]||null,
-    tScores,
-    valid,
-    vMsg,
-    report,
-    conf:valid?0.88:0.45,
-    date:Date.now()
-  };
+  // Validity
+  var valid=true,msg="";
+  if(t.VAL>65){valid=false;msg="Posible idealización de respuestas."}
+  
+  // Archetype scores
+  var scored=ARCH.map(function(ar){
+    var sc=50;
+    for(var k in ar.w){sc+=(t[k]||50-50)*ar.w[k]}
+    var r=Math.round(sc),p=Math.min(100,Math.max(5,Math.round(r)));
+    return{id:ar.id,n:ar.n,cat:ar.cat,d:ar.d,raw:r,pct:p};
+  });
+  scored.sort(function(a,b){return b.raw-a.raw});
+  var top5=scored.slice(0,5),maxP=top5[0].pct||1;
+  top5.forEach(function(r){r.pct=Math.round(r.pct/maxP*100)});
+  
+  // Report
+  var dims=Object.entries(t).filter(function(x){return x[0]!='VAL'}).sort(function(a,b){return b[1]-a[1]}).slice(0,4);
+  var lb={STR:'Fuerza',INT:'Intelecto',CHA:'Carisma',WIS:'Moral',DEX:'Sigilo',CON:'Resiliencia',LEAD:'Liderazgo',NAT:'Naturaleza',TEC:'Técnica',SHD:'Sombra',SUP:'Soporte',SWT:'Versatilidad'};
+  var rep='PERFIL: '+top5[0].n+'\nCategoria: '+top5[0].cat+'\nAfinidad: '+top5[0].pct+'%\n\nDIMENSIONES:\n'+dims.map(function(d){var l=d[1]<40?'Bajo':d[1]>60?'Alto':'Promedio';return'  • '+lb[d[0]]+': '+d[1]+'T ('+l+')'}).join('\n')+'\n\nSECUNDARIO: '+(top5[1]?top5[1].n+' ('+top5[1].pct+'%)':'N/A')+'\n\nNota: Evaluación orientativa.';
+  
+  st.r={top5:top5,primary:top5[0],secondary:top5[1]||null,t:t,valid:valid,msg:msg,rep:rep,conf:valid?.88:.45,date:Date.now()};
+  try{localStorage.setItem('dnd_res',JSON.stringify(st.r))}catch(e){}
+  showRes();
 }
 
-// ===== RESULTADOS =====
-function showRes(r){
-  if(!r) return;
+function showRes(){
+  var r=st.r;
+  E('resMain').textContent=r.primary.n;
+  E('resCat').textContent=r.primary.cat;
+  E('resDesc').textContent=r.primary.d;
+  E('resSec').textContent=r.secondary?r.secondary.n+' ('+r.secondary.pct+'%)':'No determinado';
+  E('resSecDesc').textContent=r.secondary?r.secondary.d:'---';
   
-  const els={
-    main:$('res-main'), cat:$('res-cat'), desc:$('res-desc'),
-    sec:$('res-sec'), secDesc:$('res-sec-desc'),
-    dims:$('res-dims'), report:$('res-report'),
-    conf:$('res-conf'), date:$('res-date'),
-    alert:$('val-alert'), alertMsg:$('val-msg')
-  };
+  var dims=Object.entries(r.t).filter(function(x){return x[0]!='VAL'});
+  E('resDims').innerHTML=dims.map(function(d){
+    var w=Math.min(100,(d[1]-20)*1.67);
+    return'<div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;margin:.2rem 0"><span style="width:100px;color:var(--muted)">'+d[0]+'</span><div class="res-bar"><div class="res-fill" style="width:'+w+'%"></div></div><span>'+d[1]+'T</span></div>';
+  }).join('');
   
-  if(els.main) els.main.textContent=r.primary?.n||'---';
-  if(els.cat) els.cat.textContent=r.primary?.cat||'---';
-  if(els.desc) els.desc.textContent=r.primary?.d||'---';
-  
-  if(els.sec){
-    els.sec.textContent=r.secondary?`${r.secondary.n} (${r.secondary.pct}%)`:'No determinado';
-  }
-  if(els.secDesc){
-    els.secDesc.textContent=r.secondary?r.secondary.d:'Perfil secundario insuficiente para mapeo.';
-  }
-  
-  if(els.dims){
-    els.dims.innerHTML=Object.entries(r.tScores||{})
-      .filter(([k])=>k!=='VAL')
-      .map(([k,v])=>{
-        const w=Math.min(100,(v-20)*1.67);
-        return`<div style="display:flex;align-items:center;gap:.8rem;font-size:.8rem;margin:.3rem 0">
-          <span style="width:140px;color:var(--muted)">${k}</span>
-          <div class="res-bar"><div class="res-fill" style="width:${w}%"></div></div>
-          <span style="min-width:30px;text-align:right">${v}T</span>
-        </div>`;
-      }).join('');
-  }
-  
-  if(els.report) els.report.textContent=r.report||'Generando informe...';
-  if(els.conf) els.conf.textContent=`${Math.round((r.conf||0)*100)}%`;
-  if(els.date) els.date.textContent=new Date(r.date||Date.now()).toLocaleDateString('es-ES');
-  
-  if(els.alert && els.alertMsg && !r.valid){
-    els.alert.style.display='block';
-    els.alertMsg.textContent=r.vMsg||'Protocolo cuestionable';
-  }
-  
-  show('s-res');
-  window.scrollTo(0,0);
+  E('resReport').textContent=r.rep;
+  show('results');
 }
 
 function dl(){
-  if(!S.res){alert('Sin resultados para exportar'); return;}
-  const b=new Blob([S.res.report||''],{type:'text/plain'});
-  const u=URL.createObjectURL(b);
-  const a=document.createElement('a');
-  a.href=u;
-  a.download=`dnd-perfil-${Date.now()}.txt`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(u);
+  if(!st.r){alert('Sin resultados');return}
+  var b=new Blob([st.r.rep],{type:'text/plain'}),u=URL.createObjectURL(b);
+  var a=document.createElement('a');a.href=u;a.download='dnd-'+Date.now()+'.txt';a.click();URL.revokeObjectURL(u);
 }
-
-// ===== START =====
-document.addEventListener('DOMContentLoaded', init);
 </script>
+</body>
+</html>
