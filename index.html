@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎲 D&D Archetype Assessment</title>
+  <style>
+    :root{--bg:#0a0a0f;--surface:#1a1a2e;--primary:#7b68ee;--text:#e6e6ff;--muted:#a0a0c0}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:monospace;background:var(--bg);color:var(--text);padding:2rem;line-height:1.5}
+    .header{border:2px solid var(--primary);padding:1rem;margin-bottom:2rem;text-align:center}
+    .title{color:var(--primary);text-transform:uppercase;letter-spacing:3px}
+    .screen{display:none}
+    .screen.active{display:block}
+    .btn{background:var(--surface);border:1px solid var(--primary);color:var(--primary);padding:.75rem 1.5rem;cursor:pointer;margin:.5rem}
+    .btn:hover{background:rgba(123,104,238,.2)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .progress{height:8px;background:#333;margin:1rem 0}
+    .progress-fill{height:100%;background:var(--primary);width:0;transition:width.3s}
+    .question{background:var(--surface);padding:1.5rem;margin:1rem 0;border-left:4px solid var(--primary)}
+    .options{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin:1rem 0}
+    .opt{padding:1rem;text-align:center;border:1px solid #333;cursor:pointer}
+    .opt:hover,.opt.selected{border-color:var(--primary);background:rgba(123,104,238,.2)}
+    .result-card{background:var(--surface);padding:1.5rem;margin:1rem 0;border-left:4px solid var(--primary)}
+    .bar{height:6px;background:#333;margin:.5rem 0}
+    .bar-fill{height:100%;background:var(--primary)}
+    @media(max-width:600px){.options{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1 class="title">🎲 D&D Archetype Assessment</h1>
+    <p>Descubre tu clase de aventurero • 120 preguntas</p>
+  </header>
+
+  <!-- Welcome -->
+  <section id="welcome" class="screen active">
+    <div style="text-align:center;padding:2rem">
+      <p style="margin-bottom:1rem">Este test te ayudará a descubrir qué arquetipo de D&D eres.</p>
+      <p style="color:var(--muted);margin-bottom:2rem">Responde con honestidad • Resultados privados • 100% local</p>
+      <label style="display:block;margin-bottom:1rem">
+        <input type="checkbox" id="consent"> 
+        He leído y consiento participar para entretenimiento.
+      </label>
+      <button class="btn" id="startBtn" disabled>[ COMENZAR AVENTURA ]</button>
+    </div>
+  </section>
+
+  <!-- Assessment -->
+  <section id="assessment" class="screen">
+    <div class="progress"><div class="progress-fill" id="progress"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)">
+      <span id="qNum">1/120</span>
+      <span id="qCat">Categoría</span>
+    </div>
+    <div class="question">
+      <p id="qText" style="margin-bottom:1rem">Cargando...</p>
+      <div class="options" id="options"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between">
+      <button class="btn" id="prevBtn" disabled>[ ← ]</button>
+      <button class="btn" id="nextBtn">[ → ]</button>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="results" class="screen">
+    <div class="result-card">
+      <h3 style="color:var(--primary)">🎭 ARQUETIPO PRIMARIO</h3>
+      <h2 id="primaryRole" style="margin:.5rem 0">---</h2>
+      <p id="primaryDesc" style="color:var(--muted)">---</p>
+      <span id="primaryCat" style="background:rgba(123,104,238,.2);padding:.25rem .5rem;font-size:.8rem">---</span>
+    </div>
+    <div class="result-card">
+      <h3>📊 TOP 5 ROLES</h3>
+      <div id="topRoles"></div>
+    </div>
+    <div class="result-card">
+      <h3>📈 DIMENSIONES</h3>
+      <div id="dimensions"></div>
+    </div>
+    <pre id="interpretation" style="background:var(--surface);padding:1rem;white-space:pre-wrap;font-size:.9rem"></pre>
+    <div style="text-align:center;margin:2rem">
+      <button class="btn" id="downloadBtn">[ 📥 DESCARGAR FICHA ]</button>
+      <button class="btn" id="restartBtn">[ 🔄 NUEVA EVALUACIÓN ]</button>
+    </div>
+  </section>
+
+  <script>
+    // ===== DATOS (simplificado para demo) =====
+    const QUESTIONS = [
+      {id:1,text:"Prefiero resolver conflictos con fuerza directa.",cat:"combat"},
+      {id:2,text:"Me siento más cómodo atacando desde las sombras.",cat:"combat"},
+      {id:3,text:"Disfruto estudiando estrategias antes de combatir.",cat:"combat"},
+      {id:4,text:"Prefiero evitar el combate si puedo hablar.",cat:"combat"},
+      {id:5,text:"Me fascina el estudio de lo místico.",cat:"magic"},
+      {id:6,text:"Prefiero soluciones prácticas antes que mágicas.",cat:"magic"},
+      {id:7,text:"Me gustaría poder lanzar hechizos poderosos.",cat:"magic"},
+      {id:8,text:"Confío más en mi fuerza física que en la magia.",cat:"magic"},
+      {id:9,text:"Me resulta fácil convencer a otros con palabras.",cat:"social"},
+      {id:10,text:"Prefiero la acción antes que la diplomacia.",cat:"social"},
+      // ... añade hasta 120 preguntas
+    ].map((q,i) => ({...q, id:i+1}));
+
+    const ROLES = [
+      {id:"fighter",name:"Guerrero/a",cat:"Martial",desc:"Maestro del combate. Resistente y letal.",style:"Tanque/Daño"},
+      {id:"rogue",name:"Pícaro/a",cat:"Stealth",desc:"Experto en sigilo y astucia.",style:"Daño burst"},
+      {id:"wizard",name:"Mago/a",cat:"Arcane",desc:"Manipula la realidad con hechizos.",style:"Control/Mágico"},
+      {id:"cleric",name:"Clérigo/a",cat:"Divine",desc:"Sana y protege con poder divino.",style:"Soporte"},
+      {id:"paladin",name:"Paladín",cat:"Divine",desc:"Guerrero sagrado con código de honor.",style:"Tanque/Sagrado"},
+      {id:"ranger",name:"Explorador/a",cat:"Nature",desc:"Maestro de supervivencia y arco.",style:"Daño distancia"},
+      {id:"barbarian",name:"Bárbaro/a",cat:"Primal",desc:"Furia incontrolable y fuerza bruta.",style:"Daño masivo"},
+      {id:"bard",name:"Bardo/a",cat:"Social",desc:"Inspira con música y magia.",style:"Soporte/Control"},
+      {id:"druid",name:"Druida",cat:"Nature",desc:"Guardián del equilibrio natural.",style:"Versátil"},
+      {id:"warlock",name:"Brujo/a",cat:"Pact",desc:"Poder mágico mediante pactos.",style:"Mágico/Utilidad"},
+      {id:"monk",name:"Monje/a",cat:"Martial",desc:"Maestro del cuerpo y energía ki.",style:"Movilidad"},
+      {id:"sorcerer",name:"Hechicero/a",cat:"Innate",desc:"Magia innata de sangre o destino.",style:"Mágico/Flexible"},
+      {id:"artificer",name:"Artífice",cat:"Tech",desc:"Ingeniero que combina magia y tecnología.",style:"Utilidad"}
+    ];
+
+    // ===== ESTADO =====
+    let state = {answers:[], idx:0, result:null};
+
+    // ===== UTILS =====
+    const $ = s => document.querySelector(s);
+    const fmtDate = ts => new Date(ts).toLocaleDateString('es-ES');
+    const save = (k,v) => localStorage.setItem(k,JSON.stringify(v));
+    const load = k => JSON.parse(localStorage.getItem(k)||'null');
+
+    // ===== INICIALIZACIÓN =====
+    function init() {
+      $('#consent').onchange = e => $('#startBtn').disabled = !e.target.checked;
+      $('#startBtn').onclick = start;
+      $('#prevBtn').onclick = prev;
+      $('#nextBtn').onclick = next;
+      $('#downloadBtn').onclick = download;
+      $('#restartBtn').onclick = () => location.reload();
+      
+      // Respuestas con teclado
+      document.addEventListener('keydown', e => {
+        if (!$('#assessment').classList.contains('active')) return;
+        if (e.key >= '1' && e.key <= '5') select(e.key);
+        if (e.key === 'ArrowLeft') prev();
+        if (e.key === 'ArrowRight') next();
+      });
+      
+      // Cargar progreso
+      const prog = load('dnd_progress');
+      if (prog) { state = prog; show('assessment'); renderQ(); update(); }
+      
+      console.log('🎲 D&D Assessment ready');
+    }
+
+    function show(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      $(`#${id}`).classList.add('active');
+    }
+
+    // ===== LÓGICA DEL TEST =====
+    function start() {
+      show('assessment');
+      renderQ();
+      update();
+    }
+
+    function select(val) {
+      state.answers[state.idx] = {qid:QUESTIONS[state.idx].id, value:+val, ts:Date.now()};
+      save('dnd_progress', state);
+      renderQ();
+      setTimeout(() => { if (state.idx < QUESTIONS.length-1) next(); }, 150);
+    }
+
+    function prev() { if (state.idx > 0) { state.idx--; renderQ(); update(); } }
+    function next() {
+      if (!state.answers[state.idx]) { alert('Selecciona una respuesta'); return; }
+      if (state.idx === QUESTIONS.length-1) finish();
+      else { state.idx++; renderQ(); update(); }
+    }
+
+    function renderQ() {
+      const q = QUESTIONS[state.idx], a = state.answers[state.idx];
+      $('#qNum').textContent = `Ítem ${state.idx+1}/${QUESTIONS.length}`;
+      $('#qCat').textContent = ({combat:'⚔️ Combate',magic:'🔮 Magia',social:'💬 Social',moral:'⚖️ Moral',exploration:'🗺️ Exploración'}[q.cat]||q.cat);
+      $('#qText').textContent = q.text;
+      
+      $('#options').innerHTML = [1,2,3,4,5].map(v => 
+        `<div class="opt ${a?.value===v?'selected':''}" onclick="select(${v})">
+          <strong>${v}</strong><br><small>${['Totalmente en desacuerdo','En desacuerdo','Neutral','De acuerdo','Totalmente de acuerdo'][v-1]}</small>
+        </div>`
+      ).join('');
+    }
+
+    function update() {
+      const ans = state.answers.filter(x=>x).length;
+      $('#progress').style.width = `${ans/QUESTIONS.length*100}%`;
+      $('#prevBtn').disabled = state.idx === 0;
+      $('#nextBtn').textContent = state.idx === QUESTIONS.length-1 ? '[ FINALIZAR ]' : '[ → ]';
+    }
+
+    // ===== SCORING =====
+    function finish() {
+      if (state.answers.filter(x=>x).length < 20) { alert('Responde al menos 20 preguntas'); return; }
+      
+      // Calcular dimensiones
+      const dims = {};
+      QUESTIONS.forEach(q => {
+        const a = state.answers.find(x=>x.qid===q.id);
+        if (!a || q.cat==='validity') return;
+        dims[q.cat] = (dims[q.cat]||0) + a.value;
+      });
+      
+      // Calcular afinidad con roles
+      const scored = ROLES.map(r => {
+        let s = 50;
+        if (r.id==='fighter') s = (dims.combat||50)+10;
+        if (r.id==='rogue') s = Math.round((dims.combat||50)*0.7 + (dims.social||50)*0.8);
+        if (r.id==='wizard') s = (dims.magic||50) + (dims.exploration||50)/2;
+        if (r.id==='cleric') s = Math.round((dims.magic||50)*0.8 + (dims.social||50)*0.7);
+        if (r.id==='paladin') s = (dims.combat||50) + (dims.moral||50)/2;
+        if (r.id==='ranger') s = (dims.exploration||50) + (dims.combat||50)/2;
+        if (r.id==='barbarian') s = (dims.combat||50) + ((dims.moral||50)<45?15:0);
+        if (r.id==='bard') s = (dims.social||50) + (dims.magic||50)/2;
+        if (r.id==='druid') s = Math.round((dims.magic||50)*0.8 + ((dims.moral||50)>50?10:0));
+        if (r.id==='warlock') s = (dims.magic||50) + ((dims.moral||50)<50?10:0);
+        if (r.id==='monk') s = Math.round((dims.combat||50)*0.7 + (dims.moral||50)*0.6);
+        if (r.id==='sorcerer') s = (dims.magic||50) + (dims.combat||50)/3;
+        if (r.id==='artificer') s = Math.round((dims.magic||50)*0.6 + (dims.exploration||50)*0.7);
+        return {...r, score:Math.min(100,Math.max(0,s))};
+      });
+      
+      scored.sort((a,b)=>b.score-a.score);
+      const top5 = scored.slice(0,5).map(r => ({...r, pct:Math.round(r.score/scored[0].score*100)}));
+      
+      // Interpretación
+      const interp = `╔════════════════════════════╗
+║  ARQUETIPO: ${top5[0].name.toUpperCase().padEnd(14)}  ║
+╚════════════════════════════╝
+
+🎭 Rol Principal: ${top5[0].name}
+📊 Categoría: ${top5[0].cat}
+⚔️ Estilo: ${top5[0].style}
+
+📈 Dimensiones destacadas:
+${Object.entries(dims).slice(0,4).map(([k,v])=>`  • ${k}: ${Math.round(v/QUESTIONS.filter(q=>q.cat===k).length||3)*10}T`).join('\n')}
+
+💡 Consejo: ¡Juega como te divierta!
+Esta evaluación es para entretenimiento.`;
+
+      state.result = {top5, dims, interp, date:Date.now()};
+      localStorage.removeItem('dnd_progress');
+      showResults();
+    }
+
+    function showResults() {
+      const r = state.result, t = r.top5[0];
+      $('#primaryRole').textContent = t.name;
+      $('#primaryDesc').textContent = t.desc;
+      $('#primaryCat').textContent = t.cat;
+      
+      $('#topRoles').innerHTML = r.top5.map((role,i)=>
+        `<div style="display:flex;align-items:center;gap:1rem;margin:.5rem 0">
+          <strong>#${i+1}</strong>
+          <span style="flex:1">${role.name}</span>
+          <div class="bar"><div class="bar-fill" style="width:${role.pct}%"></div></div>
+          <span>${role.pct}%</span>
+        </div>`
+      ).join('');
+      
+      $('#dimensions').innerHTML = Object.entries(r.dims).map(([k,v])=>{
+        const avg = Math.round(v / QUESTIONS.filter(q=>q.cat===k).length * 10);
+        const w = Math.min(100, Math.max(0, (avg-20)*1.67));
+        return `<div style="display:flex;align-items:center;gap:1rem;margin:.5rem 0">
+          <span style="width:100px;font-size:.9rem">${k}</span>
+          <div class="bar"><div class="bar-fill" style="width:${w}%"></div></div>
+          <span>${avg}T</span>
+        </div>`;
+      }).join('');
+      
+      $('#interpretation').textContent = r.interp;
+      show('results');
+      window.scrollTo(0,0);
+    }
+
+    function download() {
+      if (!state.result) return;
+      const r = state.result;
+      const content = `D&D ARCHETYPE ASSESSMENT
+Fecha: ${fmtDate(r.date)}
+════════════════════════════════════
+
+🎭 ARQUETIPO PRIMARIO: ${r.top5[0].name}
+Categoría: ${r.top5[0].cat}
+Estilo: ${r.top5[0].style}
+Descripción: ${r.top5[0].desc}
+
+📊 TOP 5 ROLES:
+${r.top5.map((role,i)=>`${i+1}. ${role.name} (${role.pct}%)`).join('\n')}
+
+📈 DIMENSIONES:
+${Object.entries(r.dims).map(([k,v])=>`• ${k}: ${Math.round(v/QUESTIONS.filter(q=>q.cat===k).length||3)*10}T`).join('\n')}
+
+${r.interp}
+════════════════════════════════════
+Generado con 🎲 para entretenimiento`;
+      
+      const blob = new Blob([content], {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'dnd-ficha-personaje.txt';
+      a.click(); URL.revokeObjectURL(url);
+    }
+
+    // ===== START =====
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
