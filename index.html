@@ -356,7 +356,7 @@ function calc(){
   // Report en %
   var dims=Object.entries(pct).filter(function(x){return x[0]!='VAL'}).sort(function(a,b){return b[1]-a[1]}).slice(0,4);
   var lb={STR:'Fuerza',INT:'Intelecto',CHA:'Carisma',WIS:'Moral',DEX:'Sigilo',CON:'Resiliencia',LEAD:'Liderazgo',NAT:'Naturaleza',TEC:'Técnica',SHD:'Sombra',SUP:'Soporte',SWT:'Versatilidad'};
-  var rep='PERFIL: '+top5[0].n+'\nCategoria: '+top5[0].cat+'\nAfinidad: '+top5[0].pct+'%\n\nDIMENSIONES (%):\n'+dims.map(function(d){var l=d[1]<40?'Bajo':d[1]>60?'Alto':'Promedio';return'  • '+lb[d[0]]+': '+d[1]+'% ('+l+')'}).join('\n')+'\n\nSECUNDARIO: '+(top5[1]?top5[1].n+' ('+top5[1].pct+'%)':'N/A')+'\n\nNota: Evaluación orientativa. Resultados en porcentaje de afinidad.';
+  var rep='PERFIL: '+top5[0].n+'\nCategoria: '+top5[0].cat+'\nAfinidad: '+top5[0].pct+'%\n\nDIMENSIONES (%):\n'+dims.map(function(d){var l=d[1]<40?'Bajo':d[1]>60?'Alto':'Promedio';return'  • '+lb[d[0]]+': '+d[1]+'% ('+l+')'}).join('\n')+'\n\nSECUNDARIO: '+(top5[1]?top5[1].n+' ('+top5[1].pct+'%)':'N/A')+'\n\nNota: Resultados en porcentaje de afinidad.';
   
   st.r={top5:top5,primary:top5[0],secondary:top5[1]||null,pct:pct,valid:valid,msg:msg,rep:rep,conf:valid?.88:.45,date:Date.now()};
   try{localStorage.setItem('dnd_res',JSON.stringify(st.r))}catch(e){}
