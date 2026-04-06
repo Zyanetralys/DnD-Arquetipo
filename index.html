@@ -37,7 +37,6 @@
     <div style="font-size:.75rem;color:var(--muted)">120 ítems • Escala 1-5</div>
   </header>
 
-  <!-- WELCOME -->
   <section id="welcome" class="screen active">
     <div class="card">
       <p style="margin-bottom:1rem;color:var(--muted)">Responde según tu tendencia natural. Resultados procesados localmente.</p>
@@ -49,7 +48,6 @@
     </div>
   </section>
 
-  <!-- ASSESSMENT -->
   <section id="assess" class="screen">
     <div class="prog"><div id="progFill" class="prog-fill"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--dim)">
@@ -63,7 +61,6 @@
     </div>
   </section>
 
-  <!-- LOADING -->
   <section id="loading" class="screen">
     <div class="card" style="text-align:center;padding:2rem">
       <div style="font-size:2rem;margin-bottom:1rem">⟳</div>
@@ -72,7 +69,6 @@
     </div>
   </section>
 
-  <!-- RESULTS -->
   <section id="results" class="screen">
     <div class="card">
       <h3 style="color:var(--primary)">ARQUETIPO PRIMARIO</h3>
@@ -86,8 +82,9 @@
       <p id="resSecDesc" style="color:var(--muted);font-size:.85rem">---</p>
     </div>
     <div class="card">
-      <h3>DIMENSIONES</h3>
+      <h3>DIMENSIONES (%)</h3>
       <div id="resDims"></div>
+      <div style="font-size:.7rem;color:var(--dim);margin-top:.5rem">◼ &lt;40%: Bajo • 40-60%: Promedio • &gt;60%: Alto</div>
     </div>
     <pre id="resReport"></pre>
     <div style="display:flex;gap:.5rem;justify-content:center;margin:1rem 0">
@@ -246,37 +243,28 @@ const E=id=>document.getElementById(id);
 
 // ===== INICIALIZACIÓN =====
 window.onload=function(){
-  // Consentimiento
   const consent=E('consent'),startBtn=E('startBtn');
   if(consent&&startBtn){
     startBtn.disabled=!consent.checked;
     consent.onchange=function(){startBtn.disabled=!this.checked};
     startBtn.onclick=function(){show('assess');render();upd()};
   }
-  
-  // Navegación
   if(E('prevBtn'))E('prevBtn').onclick=prev;
   if(E('nextBtn'))E('nextBtn').onclick=next;
   if(E('dlBtn'))E('dlBtn').onclick=dl;
   if(E('reBtn'))E('reBtn').onclick=function(){location.reload()};
-  
-  // Opciones - evento directo en contenedor
   if(E('qOpts')){
     E('qOpts').onclick=function(e){
       const opt=e.target.closest('.opt');
       if(opt&&opt.dataset.v)answer(+opt.dataset.v);
     };
   }
-  
-  // Teclado
   document.onkeydown=function(e){
     if(E('assess').className.indexOf('active')<0)return;
     if(e.key>='1'&&e.key<='5'){e.preventDefault();answer(+e.key)}
     if(e.key==='ArrowLeft'){e.preventDefault();prev()}
     if(e.key==='ArrowRight'){e.preventDefault();next()}
   };
-  
-  // Cargar progreso
   try{
     const p=JSON.parse(localStorage.getItem('dnd')||'null');
     if(p&&p.a&&p.a.length===120){st=p;show('assess');render();upd()}
@@ -288,27 +276,21 @@ function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.className=s.className.replace(' active',''));
   E(id).className+=' active';
 }
-
 function prev(){if(st.i>0){st.i--;render();upd()}}
-
 function next(){
   if(!st.a[st.i]){alert('Selecciona una respuesta');return}
   if(st.i>=119){finish()}else{st.i++;render();upd()}
 }
-
 function answer(v){
   st.a[st.i]={q:Q[st.i].id,v:v,t:Date.now()};
   try{localStorage.setItem('dnd',JSON.stringify(st))}catch(e){}
-  // Resaltar visualmente
   const opts=E('qOpts').querySelectorAll('.opt');
   opts.forEach(o=>o.className=o.className.replace(' sel',''));
   opts[v-1].className+=' sel';
-  // Avanzar
   setTimeout(function(){
     if(st.i>=119){finish()}else{st.i++;render();upd()}
   },100);
 }
-
 function render(){
   const q=Q[st.i],a=st.a[st.i];
   E('qIdx').textContent=(st.i+1)+'/120';
@@ -318,7 +300,6 @@ function render(){
   const labels=['Total desacuerdo','En desacuerdo','Neutral','De acuerdo','Total acuerdo'];
   E('qOpts').innerHTML=[1,2,3,4,5].map(x=>'<div class="opt'+(a&&a.v===x?' sel':'')+'" data-v="'+x+'"><strong>'+x+'</strong><br><small>'+labels[x-1]+'</small></div>').join('');
 }
-
 function upd(){
   const n=st.a.filter(x=>x).length;
   E('progFill').style.width=(n/120*100)+'%';
@@ -326,7 +307,7 @@ function upd(){
   E('nextBtn').textContent=st.i===119?'[ FINALIZAR ]':'[ → ]';
 }
 
-// ===== SCORING =====
+// ===== SCORING EN PORCENTAJES =====
 function finish(){
   if(st.a.filter(x=>x).length<96){alert('Mínimo 96 ítems');return}
   show('loading');
@@ -350,35 +331,34 @@ function calc(){
     raw[k]=s;
   }
   
-  // T-scores
-  const t={};
+  // PORCENTAJES DIRECTOS (0-100%)
+  const pct={};
   for(var k in raw){
     var sc=SCALES[k],max=Math.max(1,sc.i.reduce(function(a,b){return a+5*b.w},0));
-    var norm=raw[k]/max;
-    t[k]=Math.min(80,Math.max(20,Math.round(20+norm*60)));
+    var norm=raw[k]/max; // 0.0 a 1.0
+    pct[k]=Math.round(norm*100); // 0% a 100%
   }
   
-  // Validity
+  // Validity check
   var valid=true,msg="";
-  if(t.VAL>65){valid=false;msg="Posible idealización de respuestas."}
+  if(pct.VAL>85){valid=false;msg="Posible idealización de respuestas."}
   
-  // Archetype scores
+  // Archetype scores en %
   var scored=ARCH.map(function(ar){
     var sc=50;
-    for(var k in ar.w){sc+=(t[k]||50-50)*ar.w[k]}
-    var r=Math.round(sc),p=Math.min(100,Math.max(5,Math.round(r)));
-    return{id:ar.id,n:ar.n,cat:ar.cat,d:ar.d,raw:r,pct:p};
+    for(var k in ar.w){sc+=(pct[k]||50-50)*ar.w[k]}
+    var finalPct=Math.min(100,Math.max(0,Math.round(sc)));
+    return{id:ar.id,n:ar.n,cat:ar.cat,d:ar.d,pct:finalPct};
   });
-  scored.sort(function(a,b){return b.raw-a.raw});
-  var top5=scored.slice(0,5),maxP=top5[0].pct||1;
-  top5.forEach(function(r){r.pct=Math.round(r.pct/maxP*100)});
+  scored.sort(function(a,b){return b.pct-a.pct});
+  var top5=scored.slice(0,5);
   
-  // Report
-  var dims=Object.entries(t).filter(function(x){return x[0]!='VAL'}).sort(function(a,b){return b[1]-a[1]}).slice(0,4);
+  // Report en %
+  var dims=Object.entries(pct).filter(function(x){return x[0]!='VAL'}).sort(function(a,b){return b[1]-a[1]}).slice(0,4);
   var lb={STR:'Fuerza',INT:'Intelecto',CHA:'Carisma',WIS:'Moral',DEX:'Sigilo',CON:'Resiliencia',LEAD:'Liderazgo',NAT:'Naturaleza',TEC:'Técnica',SHD:'Sombra',SUP:'Soporte',SWT:'Versatilidad'};
-  var rep='PERFIL: '+top5[0].n+'\nCategoria: '+top5[0].cat+'\nAfinidad: '+top5[0].pct+'%\n\nDIMENSIONES:\n'+dims.map(function(d){var l=d[1]<40?'Bajo':d[1]>60?'Alto':'Promedio';return'  • '+lb[d[0]]+': '+d[1]+'T ('+l+')'}).join('\n')+'\n\nSECUNDARIO: '+(top5[1]?top5[1].n+' ('+top5[1].pct+'%)':'N/A')+'\n\nNota: Evaluación orientativa.';
+  var rep='PERFIL: '+top5[0].n+'\nCategoria: '+top5[0].cat+'\nAfinidad: '+top5[0].pct+'%\n\nDIMENSIONES (%):\n'+dims.map(function(d){var l=d[1]<40?'Bajo':d[1]>60?'Alto':'Promedio';return'  • '+lb[d[0]]+': '+d[1]+'% ('+l+')'}).join('\n')+'\n\nSECUNDARIO: '+(top5[1]?top5[1].n+' ('+top5[1].pct+'%)':'N/A')+'\n\nNota: Evaluación orientativa. Resultados en porcentaje de afinidad.';
   
-  st.r={top5:top5,primary:top5[0],secondary:top5[1]||null,t:t,valid:valid,msg:msg,rep:rep,conf:valid?.88:.45,date:Date.now()};
+  st.r={top5:top5,primary:top5[0],secondary:top5[1]||null,pct:pct,valid:valid,msg:msg,rep:rep,conf:valid?.88:.45,date:Date.now()};
   try{localStorage.setItem('dnd_res',JSON.stringify(st.r))}catch(e){}
   showRes();
 }
@@ -391,10 +371,9 @@ function showRes(){
   E('resSec').textContent=r.secondary?r.secondary.n+' ('+r.secondary.pct+'%)':'No determinado';
   E('resSecDesc').textContent=r.secondary?r.secondary.d:'---';
   
-  var dims=Object.entries(r.t).filter(function(x){return x[0]!='VAL'});
+  var dims=Object.entries(r.pct).filter(function(x){return x[0]!='VAL'});
   E('resDims').innerHTML=dims.map(function(d){
-    var w=Math.min(100,(d[1]-20)*1.67);
-    return'<div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;margin:.2rem 0"><span style="width:100px;color:var(--muted)">'+d[0]+'</span><div class="res-bar"><div class="res-fill" style="width:'+w+'%"></div></div><span>'+d[1]+'T</span></div>';
+    return'<div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;margin:.2rem 0"><span style="width:100px;color:var(--muted)">'+d[0]+'</span><div class="res-bar"><div class="res-fill" style="width:'+d[1]+'%"></div></div><span>'+d[1]+'%</span></div>';
   }).join('');
   
   E('resReport').textContent=r.rep;
