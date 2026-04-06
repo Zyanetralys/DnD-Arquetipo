@@ -6,7 +6,7 @@
 - 120 preguntas • 13 clases • 6 dimensiones
 Resultados descargables
 
-## Backend Java (Opcional)
+## Backend Java
 ```bash
 javac Assessment.java
 java Assessment 8080  # Servidor en localhost:8080
