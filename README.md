@@ -4,7 +4,7 @@
 
 ## Características
 - 120 preguntas • 13 clases • 6 dimensiones
-Resultados descargables
+- Resultados descargables
 
 ## Backend Java
 ```bash
